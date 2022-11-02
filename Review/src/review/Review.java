@@ -17,6 +17,9 @@ public class Review {
         // TODO code application logic here
         
         System.out.println("Welcome back, we are in the Labs branch");
+        
+//        Person p = new Person("Dang", "Doan", 'H');
+//        System.out.println(p.fullName());
     }
     
 }
