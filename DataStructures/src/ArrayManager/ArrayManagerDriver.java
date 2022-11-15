@@ -23,7 +23,8 @@ public class ArrayManagerDriver {
         am.add(99);
         am.print();
         System.out.println("---");
-        am.printItems();
+        am.insertAt(66, 2);
+        am.print();
         
         
 //        int[] items = new int[5];

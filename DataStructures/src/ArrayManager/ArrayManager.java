@@ -34,12 +34,16 @@ public class ArrayManager {
             items[count] = o;
             count++;
         } else {
-            Object[] temp = new Object[items.length + 10];
-            System.arraycopy(items, 0, temp, 0, count);
-            items = temp;
+            resize();
             items[count] = o;
             count++;
         }
+    }
+
+    public void resize() {
+        Object[] temp = new Object[items.length + 10];
+        System.arraycopy(items, 0, temp, 0, count);
+        items = temp;
     }
 
     public void print() {
@@ -52,6 +56,28 @@ public class ArrayManager {
         for (int i = 0; i < items.length; i++) {
             System.out.println(items[i]);
         }
+    }
+
+    public int size() {
+        return count;
+    }
+
+    public boolean isEmpty() {
+        if (count == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void insertAt(Object o, int pos) {
+        if (count >= items.length) {
+            resize();
+        }
+
+        System.arraycopy(items, pos, items, pos + 1, count - pos);
+        items[pos] = o;
+        count++;
     }
 
 }
