@@ -30,14 +30,11 @@ public class ArrayManager {
     }
 
     public void add(Object o) {
-        if (count < items.length) {
-            items[count] = o;
-            count++;
-        } else {
+        if (count >= items.length) {
             resize();
-            items[count] = o;
-            count++;
         }
+        items[count] = o;
+        count++;
     }
 
     public void resize() {
@@ -63,14 +60,14 @@ public class ArrayManager {
     }
 
     public boolean isEmpty() {
-        if (count == 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return count == 0;
     }
 
-    public void insertAt(Object o, int pos) {
+    public void insertAt(Object o, int pos) throws OutOfBoundsException {
+        if (pos < 0 || pos > count) {
+            throw new OutOfBoundsException("Cannot retrieve item outside of collection bounds");
+        }
+
         if (count >= items.length) {
             resize();
         }
@@ -80,4 +77,24 @@ public class ArrayManager {
         count++;
     }
 
+    public void remove(int pos) throws NoItemsException, OutOfBoundsException {
+        if (count == 0) {
+            throw new NoItemsException("Remove Failed. The collection is empty");
+        }
+
+        if (pos < 0 || pos > count) {
+            throw new OutOfBoundsException("Cannot retrieve item outside of collection bounds");
+        }
+
+        System.arraycopy(items, pos + 1, items, pos, count - pos);
+        count--;
+    }
+
+    public Object getItemAt(int pos) throws OutOfBoundsException {
+        if (pos < 0 || pos > count) {
+            throw new OutOfBoundsException("Cannot retrieve item outside of collection bounds");
+        }
+
+        return items[pos];
+    }
 }

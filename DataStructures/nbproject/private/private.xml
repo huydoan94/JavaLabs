@@ -3,8 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Huy/Documents/NetBeansProjects/DataStructures/src/ArrayManager/ArrayManagerDriver.java</file>
-            <file>file:/C:/Users/Huy/Documents/NetBeansProjects/DataStructures/src/ArrayManager/ArrayManager.java</file>
+            <file>file:/C:/Users/dangh/Dropbox/Learning/comp258/portfolio-doan2378/DataStructures/src/ArrayManager/ArrayManager.java</file>
+            <file>file:/C:/Users/dangh/Dropbox/Learning/comp258/portfolio-doan2378/DataStructures/src/ArrayManager/OutOfBoundsException.java</file>
+            <file>file:/C:/Users/dangh/Dropbox/Learning/comp258/portfolio-doan2378/DataStructures/src/ArrayManager/NoItemsException.java</file>
+            <file>file:/C:/Users/dangh/Dropbox/Learning/comp258/portfolio-doan2378/DataStructures/src/ArrayManager/ArrayManagerDriver.java</file>
         </group>
     </open-files>
 </project-private>
