@@ -5,6 +5,8 @@
  */
 package ArrayManager;
 
+import Exceptions.NoItemsException;
+import Exceptions.OutOfBoundsException;
 import java.util.Scanner;
 
 /**

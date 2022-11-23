@@ -5,6 +5,9 @@
  */
 package ArrayManager;
 
+import Exceptions.NoItemsException;
+import Exceptions.OutOfBoundsException;
+
 /**
  *
  * @author Huy
