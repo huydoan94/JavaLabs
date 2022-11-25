@@ -4,6 +4,9 @@
  */
 package LinkedLists;
 
+import Exceptions.NoItemsException;
+import Exceptions.OutOfBoundsException;
+
 /**
  *
  * @author dangh
@@ -54,7 +57,10 @@ public class LinkedList {
         current = start;
     }
 
-    public void advance() {
+    public void advance() throws OutOfBoundsException {
+        if (current.next == null) {
+            throw new OutOfBoundsException("You have gone outside the bounds of the list");
+        }
         current = current.next;
     }
 
@@ -67,6 +73,24 @@ public class LinkedList {
             node.next = current.next;
             current.next = node;
             current = current.next;
+        }
+        count++;
+    }
+
+    public void removeCurrent() throws NoItemsException {
+        if (start == null) {
+            throw new NoItemsException("No Items in Collection to Delete");
+        } else if (current == start) {
+            start = start.next;
+            count--;
+        } else {
+            ListNode temp = start;
+            while (temp.next != current) {
+                temp = temp.next;
+            }
+            temp.next = temp.next.next;
+            current = temp;
+            count--;
         }
     }
 }
