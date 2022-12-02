@@ -93,4 +93,37 @@ public class LinkedList {
             count--;
         }
     }
+
+    public void addBefore(Object item) {
+        ListNode node = new ListNode(item);
+
+        if (start == null) {
+            start = node;
+            current = start;
+        } else if (current == start) {
+            node.next = current;
+            start = node;
+            current = node;
+        } else {
+            ListNode temp = start;
+            while (temp.next != current) {
+                temp = temp.next;
+            }
+            node.next = current;
+            temp.next = node;
+        }
+        count++;
+    }
+
+    public Object getItemAt(int position) throws OutOfBoundsException {
+        if (position < 0 || position > count) {
+            throw new OutOfBoundsException("OutAbounds!!!");
+        }
+
+        ListNode temp = start;
+        for (int i = 0; i < position; i++) {
+            temp = temp.next;
+        }
+        return temp.getData();
+    }
 }

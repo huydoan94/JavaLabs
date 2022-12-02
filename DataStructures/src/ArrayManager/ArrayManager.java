@@ -100,4 +100,26 @@ public class ArrayManager {
 
         return items[pos];
     }
+
+    public int find(Object o) {
+        for (int i = 0; i < count; i++) {
+            if (items[i].equals(o)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public int findLargest() {
+        int pos = 0;
+        for (int i = 0; i < count; i++) {
+
+            Comparable c = (Comparable) items[i];
+
+            if (c.compareTo(items[pos]) > 0) {
+                pos = i;
+            }
+        }
+        return pos;
+    }
 }
