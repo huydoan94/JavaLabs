@@ -126,4 +126,37 @@ public class LinkedList {
         }
         return temp.getData();
     }
+
+    public Object find(Object o) {
+        ListNode temp = start;
+        while (temp != null) {
+            if (temp.getData().equals(o)) {
+                return temp.getData();
+            }
+
+            temp = temp.next;
+        }
+
+        return null;
+    }
+
+    public Object findLargest() {
+        Object largest = null;
+        ListNode temp = start;
+        while (temp != null) {
+            if (largest == null) {
+                largest = temp.getData();
+            } else {
+                Comparable c = (Comparable) largest;
+
+                if (c.compareTo(temp.getData()) > 0) {
+                    largest = temp.getData();
+                }
+            }
+
+            temp = temp.next;
+        }
+
+        return largest;
+    }
 }

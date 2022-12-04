@@ -41,5 +41,7 @@ public class LinkedListDriver {
             System.out.println("ERROR: " + oobe.getMessage());
         }
         System.out.println("Current: " + list.getCurrent());
+        System.out.println("Find d: " + list.find("d"));
+        System.out.println("Largest: " + list.findLargest());
     }
 }
