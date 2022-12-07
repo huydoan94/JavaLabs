@@ -4,6 +4,7 @@
  */
 package LinkedLists;
 
+import Exceptions.InvalidArgumentException;
 import Exceptions.NoItemsException;
 import Exceptions.OutOfBoundsException;
 
@@ -153,7 +154,7 @@ public class DoublyLinkedList {
         count--;
     }
 
-    public void removeRange(int start, int end) throws OutOfBoundsException {
+    public void removeRange(int start, int end) throws InvalidArgumentException {
         // This mean delete whole list
         if (start == 0 && end == count) {
             count = 0;
@@ -165,7 +166,7 @@ public class DoublyLinkedList {
 
         // Invalid arguments
         if (start < 0 || end > count || end <= start) {
-            throw new OutOfBoundsException("Invalid range!");
+            throw new InvalidArgumentException("Invalid range!");
         }
 
         ListNode2Way pointer = this.start;

@@ -5,6 +5,7 @@
  */
 package DataStructures;
 
+import Exceptions.InvalidArgumentException;
 import Exceptions.NoItemsException;
 import Exceptions.OutOfBoundsException;
 import LinkedLists.DoublyLinkedList;
@@ -137,8 +138,8 @@ public class FrameworkProgram {
 
         try {
             list.removeRange(start, end);
-        } catch (OutOfBoundsException oobe) {
-            System.out.println(oobe.getMessage());
+        } catch (InvalidArgumentException iae) {
+            System.out.println(iae.getMessage());
         }
     }
 

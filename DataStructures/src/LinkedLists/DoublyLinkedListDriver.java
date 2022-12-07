@@ -4,6 +4,7 @@
  */
 package LinkedLists;
 
+import Exceptions.InvalidArgumentException;
 import Exceptions.OutOfBoundsException;
 
 /**
@@ -24,8 +25,8 @@ public class DoublyLinkedListDriver {
 
         try {
             testList.removeRange(5, 20);
-        } catch (OutOfBoundsException oobe) {
-            System.out.println(oobe.getMessage());
+        } catch (InvalidArgumentException iae) {
+            System.out.println(iae.getMessage());
         }
 
         testList.printForward();
