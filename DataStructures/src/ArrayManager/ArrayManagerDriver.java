@@ -1,5 +1,6 @@
 package ArrayManager;
 
+import Exceptions.InvalidArgumentException;
 import Exceptions.NoItemsException;
 import Exceptions.OutOfBoundsException;
 
@@ -44,7 +45,33 @@ public class ArrayManagerDriver {
             am.print();
             System.out.println("---");
             am.printItems();
-            am.insertAt(0, 99);
+//            am.insertAt(0, 99);
+            System.out.println("---");
+            am.print();
+            System.out.println("---");
+            try {
+                am.removeRange(2, 2);
+                am.print();
+            } catch (InvalidArgumentException iae) {
+                System.out.println(iae.getMessage());
+            }
+            System.out.println("---");
+            am.add(13);
+            am.add(13);
+            am.add(13);
+            am.add(34);
+            am.add(34);
+            am.add(34);
+            am.add(99);
+            am.print();
+            System.out.println("Counting occurances of 13: " + am.countOccurances(13));
+            am.removeDuplicates();
+            System.out.println("After remove dups");
+            am.print();
+            System.out.println("---");
+            System.out.println("To linked list: ");
+            am.convertToLinkedList().print();
+            System.out.println("End");
         } catch (OutOfBoundsException oobe) {
             System.out.println(oobe.getMessage());
         }

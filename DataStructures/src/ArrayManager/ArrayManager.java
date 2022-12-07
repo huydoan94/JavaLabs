@@ -5,8 +5,10 @@
  */
 package ArrayManager;
 
+import Exceptions.InvalidArgumentException;
 import Exceptions.NoItemsException;
 import Exceptions.OutOfBoundsException;
+import LinkedLists.LinkedList;
 
 /**
  *
@@ -121,5 +123,46 @@ public class ArrayManager {
             }
         }
         return pos;
+    }
+
+    public void removeRange(int start, int end) throws InvalidArgumentException {
+        if (start < 0 || end > count || end < start) {
+            throw new InvalidArgumentException("Invalid range!");
+        }
+        int newLength = count - (end - start) - 1;
+        Object[] newArr = new Object[newLength + 10];
+        System.arraycopy(items, 0, newArr, 0, start);
+        System.arraycopy(items, end + 1, newArr, start, count - end - 1);
+        items = newArr;
+        count = newLength;
+    }
+
+    public int countOccurances(Object item) {
+        int occurances = 0;
+        for (int i = 0; i < count; i++) {
+            if (items[i].equals(item)) {
+                occurances++;
+            }
+        }
+        return occurances;
+    }
+
+    public void removeDuplicates() {
+        ArrayManager newArr = new ArrayManager();
+        for (int i = 0; i < count; i++) {
+            if (newArr.find(items[i]) == -1) {
+                newArr.add(items[i]);
+            }
+        }
+        items = newArr.items;
+        count = newArr.count;
+    }
+
+    public LinkedList convertToLinkedList() {
+        LinkedList list = new LinkedList();
+        for (int i = 0; i < count; i++) {
+            list.add(items[i]);
+        }
+        return list;
     }
 }
