@@ -49,6 +49,20 @@ public class LinkedList {
         }
     }
 
+    public void reversePrint() {
+        String[] printouts = new String[count];
+        ListNode temp = start;
+        int index = 0;
+        while (temp != null) {
+            printouts[index] = ("Data: " + temp.getData());
+            temp = temp.next;
+            index++;
+        }
+        for (int i = count - 1; i >= 0; i--) {
+            System.out.println(printouts[i]);
+        }
+    }
+
     public int size() {
         return count;
     }
