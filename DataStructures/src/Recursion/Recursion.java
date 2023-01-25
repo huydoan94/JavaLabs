@@ -30,6 +30,8 @@ public class Recursion {
         testList.add(23);
         testList.add(34);
         testList.reversePrint();
+        
+        System.out.println(myFib(12));
     }
 
     public static int sumAll(int n) {
@@ -80,8 +82,9 @@ public class Recursion {
             System.out.println("0");
             return 0;
         } else {
-            System.out.println("0,\n1,");
+            System.out.print("0, 1, ");
             if (max_n == 1) {
+                System.out.println();
                 return 1;
             }
             return fibonacci(n, val_minus1, val_minus2, max_n, 1);
@@ -93,9 +96,20 @@ public class Recursion {
             return value;
         } else {
             value = val_minus1 + val_minus2;
-            System.out.println(value + ", ");
+            System.out.print(value + ", ");
             n++;
             return fibonacci(n, value, val_minus1, max_n, value);
+        }
+    }
+    
+    public static int myFib(int n) {
+        switch (n) {
+            case 0:
+                return 0;
+            case 1:
+                return 1;
+            default:
+                return myFib(n - 1) + myFib(n - 2);
         }
     }
 

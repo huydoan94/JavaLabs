@@ -79,4 +79,20 @@ public class Tree {
     public Object searchTree(Object o) {
         return searchTree(root, o);
     }
+
+    public Object findMax() {
+        if (root.right == null) {
+            return root.getData();
+        } else {
+            return findMax(root.right);
+        }
+    }
+
+    private Object findMax(TreeNode temp) {
+        if (temp.right == null) {
+            return temp.getData();
+        } else {
+            return findMax(temp.right);
+        }
+    }
 }

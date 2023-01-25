@@ -4,8 +4,6 @@
  */
 package Tree;
 
-import java.util.Scanner;
-
 /**
  *
  * @author dangh
@@ -14,7 +12,6 @@ public class TreeDriver {
 
     public static void main(String[] args) {
         Tree t = new Tree();
-        Scanner input = new Scanner(System.in);
         for (int i = 0; i < 30; i++) {
             int num = (int) (Math.random() * 200);
             System.out.println(num + " ");
@@ -24,5 +21,7 @@ public class TreeDriver {
         System.out.println("\nPrintTree:");
         t.printTree();
 
+        System.out.println("-----------------\n");
+        System.out.println("Max is: " + t.findMax());
     }
 }
