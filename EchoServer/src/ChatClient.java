@@ -163,8 +163,8 @@ public class ChatClient extends AbstractClient {
             try {
                 String targetAndMessage = message.substring(3, message.length()).trim();
 
-                String target = message.substring(0, targetAndMessage.indexOf(" ")).trim();
-                String pm = message.substring(targetAndMessage.indexOf(" "), message.length()).trim();
+                String target = targetAndMessage.substring(0, targetAndMessage.indexOf(" ")).trim();
+                String pm = targetAndMessage.substring(targetAndMessage.indexOf(" "), targetAndMessage.length()).trim();
 
                 Envelope env = new Envelope("pm", target, pm);
                 this.sendToServer(env);

@@ -71,7 +71,6 @@ public class EchoServer extends AbstractServer {
             sendToAllClients(userId + " yells: " + message);
         }
 
-        System.out.println(env.getId());
         if (env.getId().equals("who")) {
             sendRoomListToClient(client);
         }
