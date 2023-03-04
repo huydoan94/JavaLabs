@@ -33,6 +33,7 @@ public class GUIConsole extends JFrame implements ChatIF {
     private final JLabel messageLB = new JLabel("Message: ", JLabel.RIGHT);
     private final JTextArea messageList = new JTextArea();
     
+    private TictactoeUI tictactoe;
     private ChatClient chatClient;
     
     static String host = "";
@@ -84,7 +85,9 @@ public class GUIConsole extends JFrame implements ChatIF {
         QuitConnectionAction quitConnectionAction = new QuitConnectionAction();
         quitB.addActionListener(quitConnectionAction);
         
-        new TictactoeUI();
+        
+        tictactoe = new TictactoeUI();
+        
     }
     
     
@@ -124,7 +127,9 @@ public class GUIConsole extends JFrame implements ChatIF {
                 return;
             }
             try {
+                
                 chatClient = new ChatClient(host, port, GUIConsole.this);
+                tictactoe.setChatClient(chatClient);
                 
             } catch (IOException ioe) {
                 System.out.println("Error: Can't setup connection!!!!"

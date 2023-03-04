@@ -1,6 +1,8 @@
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -16,6 +18,19 @@ import javax.swing.JPanel;
  * @author nhath
  */
 public class TictactoeUI extends JFrame{
+    
+    ChatClient chatClient;
+
+    public ChatClient getChatClient() {
+        return chatClient;
+    }
+
+    public void setChatClient(ChatClient chatClient) {
+        this.chatClient = chatClient;
+    }
+    
+    
+    
     public TictactoeUI() {
         super("Tic Tac Toe");
         setSize(800, 800);
@@ -25,11 +40,42 @@ public class TictactoeUI extends JFrame{
     for (int i = 1; i <= 9; i++) {
       JButton button = new JButton("Button " + i);
       add(button);
+      
+      ClickOnCell clickOnCell = new ClickOnCell(button, i);
+      button.addActionListener(clickOnCell);
+      
     }
-
+    
     
     setVisible(true);
         
         
+    }
+    
+    class ClickOnCell implements ActionListener {
+        
+        JButton button;
+        int cell;
+
+        public int getCell() {
+            return cell;
+        }
+
+        public void setCell(int cell) {
+            this.cell = cell;
+        }
+
+        public ClickOnCell(JButton button ,int cell) {
+            this.cell = cell;
+            this.button = button;
+        }
+        
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            
+            this.button.setText("X");
+            
+        }
     }
 }
