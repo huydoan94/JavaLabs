@@ -21,9 +21,13 @@ public class GUIConsole extends JFrame implements ChatIF {
     private final JButton openB = new JButton("Open");
     private final JButton sendB = new JButton("Send");
     private final JButton quitB = new JButton("Quit");
+    private final JButton TicTacToe = new JButton("Tic Tac Toe");
+    private final JComboBox userListComboBox = new JComboBox();
+    
     private final JTextField portTxF = new JTextField("5555");
     private final JTextField hostTxF = new JTextField("127.0.0.1");
     private final JTextField messageTxF = new JTextField("");
+    private final JLabel userListLB = new JLabel("User list: ", JLabel.RIGHT);
     private final JLabel portLB = new JLabel("Port: ", JLabel.RIGHT);
     private final JLabel hostLB = new JLabel("Host: ", JLabel.RIGHT);
     private final JLabel messageLB = new JLabel("Message: ", JLabel.RIGHT);
@@ -60,9 +64,14 @@ public class GUIConsole extends JFrame implements ChatIF {
         bottom.add(portTxF);
         bottom.add(messageLB);
         bottom.add(messageTxF);
+        bottom.add(userListLB);
+        bottom.add(userListComboBox);
         bottom.add(openB);
         bottom.add(sendB);
+        bottom.add(TicTacToe); //added tictactoe button
+        
         bottom.add(closeB);
+        
         bottom.add(quitB);
         setVisible(true);
         
@@ -76,9 +85,21 @@ public class GUIConsole extends JFrame implements ChatIF {
         quitB.addActionListener(quitConnectionAction);
     }
     
+    
+    
+    
     @Override
     public void display(String message) {
-        messageList.insert(message + "\n", 0);
+        if(message.indexOf("<USERLIST>")==0){
+          String user = message.substring(10);
+          //userListComboBox.removeAllItems();
+          userListComboBox.addItem(user);
+          
+        }
+        else{
+            messageList.insert(message + "\n", 0);
+        }
+        
     }
     
     class QuitConnectionAction implements ActionListener {
@@ -97,8 +118,12 @@ public class GUIConsole extends JFrame implements ChatIF {
         
         @Override
         public void actionPerformed(ActionEvent e) {
+            if(chatClient != null && chatClient.isConnected()){
+                return;
+            }
             try {
                 chatClient = new ChatClient(host, port, GUIConsole.this);
+                
             } catch (IOException ioe) {
                 System.out.println("Error: Can't setup connection!!!!"
                         + " Terminating client.");
@@ -119,4 +144,6 @@ public class GUIConsole extends JFrame implements ChatIF {
             }
         }
     }
+    
+    
 }

@@ -46,13 +46,20 @@ public class ChatClient extends AbstractClient {
     }
 
     public void handleCommandFromServer(Envelope env) {
-        if (env.getId().equals("who")) {
+        if (env.getId().equals("who") || env.getId().equals("userlist")) {
             ArrayList<String> userList = (ArrayList<String>) env.getContents();
-            String room = env.getArg();
-            clientUI.display("User in " + room + ":");
-            for (String s : userList) {
-                clientUI.display(s);
+            if (env.getId().equals("userlist")) {
+                for (String s : userList) {
+                    clientUI.display("<USERLIST>" + s);
+                }
+            } else {
+                String room = env.getArg();
+                clientUI.display("User in " + room + ":");
+                for (String s : userList) {
+                    clientUI.display(s);
+                }
             }
+
         }
     }
 
@@ -190,6 +197,17 @@ public class ChatClient extends AbstractClient {
 
             try {
                 Envelope env = new Envelope("who", "", "");
+                this.sendToServer(env);
+
+            } catch (IOException e) {
+                System.out.println("failed to acquire user list");
+            }
+        }
+
+        if (message.indexOf("#userlist") == 0) {
+
+            try {
+                Envelope env = new Envelope("userlist", "", "");
                 this.sendToServer(env);
 
             } catch (IOException e) {
