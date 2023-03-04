@@ -12,11 +12,13 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class GUIConsole extends JFrame implements ChatIF {
-    
+
     final public static int DEFAULT_PORT = 5555;
-    
+
     private final JButton closeB = new JButton("Close");
     private final JButton openB = new JButton("Open");
     private final JButton sendB = new JButton("Send");
@@ -28,9 +30,10 @@ public class GUIConsole extends JFrame implements ChatIF {
     private final JLabel hostLB = new JLabel("Host: ", JLabel.RIGHT);
     private final JLabel messageLB = new JLabel("Message: ", JLabel.RIGHT);
     private final JTextArea messageList = new JTextArea();
-    
+    JComboBox test = new JComboBox();
+
     private ChatClient chatClient;
-    
+
     static String host = "";
     static int port = 0;  //The port number
 
@@ -42,10 +45,10 @@ public class GUIConsole extends JFrame implements ChatIF {
             host = "localhost";
             port = DEFAULT_PORT;
         }
-        
+
         new GUIConsole();
     }
-    
+
     public GUIConsole() {
         super("Simple Chat GUI");
         setSize(300, 400);
@@ -65,36 +68,51 @@ public class GUIConsole extends JFrame implements ChatIF {
         bottom.add(closeB);
         bottom.add(quitB);
         setVisible(true);
-        
+
         SendButtonAction sendButtonAction = new SendButtonAction();
         sendB.addActionListener(sendButtonAction);
-        
+
         OpenConnectionAction openButtonAction = new OpenConnectionAction();
         openB.addActionListener(openButtonAction);
-        
+
         QuitConnectionAction quitConnectionAction = new QuitConnectionAction();
         quitB.addActionListener(quitConnectionAction);
+
+        CloseConnectionAction closeConnectionAction = new CloseConnectionAction();
+        closeB.addActionListener(closeConnectionAction);
     }
-    
+
     @Override
     public void display(String message) {
         messageList.insert(message + "\n", 0);
     }
-    
+
+    class CloseConnectionAction implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (chatClient != null && chatClient.isConnected()) {
+                try {
+                    chatClient.closeConnection();
+                } catch (IOException ex) {
+                    System.out.println(ex.getMessage());
+                }
+            }
+        }
+    }
+
     class QuitConnectionAction implements ActionListener {
-        
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (chatClient != null) {
                 chatClient.quit();
             }
-            
-            System.exit(0);
         }
     }
-    
+
     class OpenConnectionAction implements ActionListener {
-        
+
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
@@ -107,9 +125,9 @@ public class GUIConsole extends JFrame implements ChatIF {
             }
         }
     }
-    
+
     class SendButtonAction implements ActionListener {
-        
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (chatClient != null) {
