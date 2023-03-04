@@ -156,13 +156,17 @@ public class EchoServer extends AbstractServer {
         }
 
         if (env.getId().equals("who")) {
-            sendRoomListToClient(client);
+            sendRoomListToClient(client, "who");
+        }
+
+        if (env.getId().equals("userlist")) {
+            sendRoomListToClient(client, "userlist");
         }
     }
 
-    public void sendRoomListToClient(ConnectionToClient client) {
+    public void sendRoomListToClient(ConnectionToClient client, String envid) {
         Envelope env = new Envelope();
-        env.setId("who");
+        env.setId(envid);
         ArrayList<String> userList = new ArrayList<String>();
         String room = client.getInfo("room").toString();
         env.setArg(room);
@@ -263,6 +267,14 @@ public class EchoServer extends AbstractServer {
         System.out.println("<Client Connected:" + client + ">");
         client.setInfo("room", "lobby");
         client.setInfo("userId", "guest");
+
+        Thread[] clientThreadList = getClientConnections();
+        String room = client.getInfo("room").toString();
+
+        for (int i = 0; i < clientThreadList.length; i++) {
+            ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
+            sendRoomListToClient(target, "userlist");
+        }
     }
 
     @Override
