@@ -83,6 +83,8 @@ public class GUIConsole extends JFrame implements ChatIF {
         
         QuitConnectionAction quitConnectionAction = new QuitConnectionAction();
         quitB.addActionListener(quitConnectionAction);
+        
+        new TictactoeUI();
     }
     
     
