@@ -46,20 +46,25 @@ public class ChatClient extends AbstractClient {
     }
 
     public void handleCommandFromServer(Envelope env) {
-        if (env.getId().equals("who") || env.getId().equals("userlist")) {
+        if (env.getId().equals("who")) {
             ArrayList<String> userList = (ArrayList<String>) env.getContents();
-            if (env.getId().equals("userlist")) {
-                for (String s : userList) {
-                    clientUI.display("<USERLIST>" + s);
-                }
-            } else {
-                String room = env.getArg();
-                clientUI.display("User in " + room + ":");
-                for (String s : userList) {
-                    clientUI.display(s);
+            String usersString = "<USERLIST>";
+            String room = env.getArg();
+
+//            clientUI.display("User in " + room + ":");
+            for (int i = 0; i < userList.size(); i++) {
+//                clientUI.display(userList.get(i));
+
+                usersString += userList.get(i).replaceAll("&", "&amp;");
+                if (i != userList.size() - 1) {
+                    usersString += "&";
                 }
             }
+            clientUI.display(usersString);
+        }
 
+        if (env.getId().equals("userListChanged")) {
+            handleClientCommand("#who");
         }
     }
 
@@ -203,18 +208,6 @@ public class ChatClient extends AbstractClient {
                 System.out.println("failed to acquire user list");
             }
         }
-
-        if (message.indexOf("#userlist") == 0) {
-
-            try {
-                Envelope env = new Envelope("userlist", "", "");
-                this.sendToServer(env);
-
-            } catch (IOException e) {
-                System.out.println("failed to acquire user list");
-            }
-        }
-
     }
 
 }

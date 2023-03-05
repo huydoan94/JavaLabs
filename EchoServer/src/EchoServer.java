@@ -134,13 +134,19 @@ public class EchoServer extends AbstractServer {
     public void handleCommandFromClient(Envelope env, ConnectionToClient client) {
         if (env.getId().equals("login")) {
             String userId = env.getContents().toString();
+            if (userId.length() == 0) {
+                userId = "guest";
+            }
+
             client.setInfo("userId", userId);
             client.setInfo("room", "lobby");
+            notifyUserListChanged(client);
         }
 
         if (env.getId().equals("join")) {
             String roomName = env.getContents().toString();
             client.setInfo("room", roomName);
+            notifyUserListChanged(client);
         }
 
         if (env.getId().equals("pm")) {
@@ -156,17 +162,13 @@ public class EchoServer extends AbstractServer {
         }
 
         if (env.getId().equals("who")) {
-            sendRoomListToClient(client, "who");
-        }
-
-        if (env.getId().equals("userlist")) {
-            sendRoomListToClient(client, "userlist");
+            sendRoomListToClient(client);
         }
     }
 
-    public void sendRoomListToClient(ConnectionToClient client, String envid) {
+    public void sendRoomListToClient(ConnectionToClient client) {
         Envelope env = new Envelope();
-        env.setId(envid);
+        env.setId("who");
         ArrayList<String> userList = new ArrayList<String>();
         String room = client.getInfo("room").toString();
         env.setArg(room);
@@ -220,6 +222,26 @@ public class EchoServer extends AbstractServer {
         }
     }
 
+    public void notifyUserListChanged(ConnectionToClient client) {
+        Thread[] clientThreadList = getClientConnections();
+
+        for (Thread clientThreadList1 : clientThreadList) {
+            ConnectionToClient target = (ConnectionToClient) clientThreadList1;
+            try {
+                Envelope env = new Envelope();
+                env.setId("userListChanged");
+                try {
+                    target.sendToClient(env);
+                } catch (IOException e) {
+                    System.out.println("Failed to send userList to client");
+                }
+            } catch (Exception ex) {
+                System.out.println("failed to send to client");
+            }
+        }
+
+    }
+
     /**
      * This method overrides the one in the superclass. Called when the server
      * starts listening for connections.
@@ -267,20 +289,13 @@ public class EchoServer extends AbstractServer {
         System.out.println("<Client Connected:" + client + ">");
         client.setInfo("room", "lobby");
         client.setInfo("userId", "guest");
-
-        Thread[] clientThreadList = getClientConnections();
-        String room = client.getInfo("room").toString();
-
-        for (int i = 0; i < clientThreadList.length; i++) {
-            ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
-            sendRoomListToClient(target, "userlist");
-        }
+        notifyUserListChanged(client);
     }
 
     @Override
     protected synchronized void clientException(ConnectionToClient client, Throwable exception) {
         System.out.println("Client shutdown");
+        notifyUserListChanged(client);
     }
-
 }
 //End of EchoServer class
