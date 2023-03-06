@@ -210,5 +210,9 @@ public class ChatClient extends AbstractClient {
         }
     }
 
+    public void sendTicTacToeMove(int move) {
+
+    }
+
 }
 //End of ChatClient class

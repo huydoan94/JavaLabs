@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 
 public class ClientGUI extends JFrame implements ChatIF {
 
+    final public static String DEFAULT_HOST = "localhost";
     final public static int DEFAULT_PORT = 5555;
 
     private final JButton closeB = new JButton("Close");
@@ -27,8 +28,8 @@ public class ClientGUI extends JFrame implements ChatIF {
     private final JButton ticTacToeB = new JButton("Tic Tac Toe");
     private final JComboBox userListComboBox = new JComboBox();
 
-    private final JTextField portTxF = new JTextField("5555");
-    private final JTextField hostTxF = new JTextField("127.0.0.1");
+    private final JTextField portTxF = new JTextField("");
+    private final JTextField hostTxF = new JTextField("");
     private final JTextField messageTxF = new JTextField("");
     private final JTextField loginTxF = new JTextField("");
     private final JLabel userListLB = new JLabel("User list: ", JLabel.RIGHT);
@@ -40,15 +41,15 @@ public class ClientGUI extends JFrame implements ChatIF {
     private TictactoeUI ticTacToeUI;
     private ChatClient chatClient;
 
-    static String host = "";
-    static int port = 0;  //The port number
+    static String host;
+    static int port;
 
     public static void main(String[] args) {
         try {
             host = args[0];
             port = Integer.parseInt(args[1]);
         } catch (ArrayIndexOutOfBoundsException e) {
-            host = "localhost";
+            host = DEFAULT_HOST;
             port = DEFAULT_PORT;
         }
 
@@ -78,8 +79,21 @@ public class ClientGUI extends JFrame implements ChatIF {
         bottom.add(loginB);
         bottom.add(loginTxF);
         bottom.add(quitB);
+
+        hostTxF.setText(host);
+        portTxF.setText(port + "");
         setVisible(true);
+
+        ticTacToeUI = new TictactoeUI();
+
+        messageList.setLineWrap(true);
+        messageList.setWrapStyleWord(true);
+        messageList.setEditable(false);
+        messageList.setBackground(Color.WHITE);
         setButtonsBaseOnConnectionStatus(false);
+
+        TicTacToeAction ticTacToeAction = new TicTacToeAction();
+        ticTacToeB.addActionListener(ticTacToeAction);
 
         SendButtonAction sendButtonAction = new SendButtonAction();
         sendB.addActionListener(sendButtonAction);
@@ -125,6 +139,14 @@ public class ClientGUI extends JFrame implements ChatIF {
         loginTxF.setEditable(!isConnected && chatClient != null);
         loginB.setEnabled(!isConnected && chatClient != null);
     }
+    
+    class TicTacToeAction implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            
+        }
+    }
 
     class SendButtonAction implements ActionListener {
 
@@ -147,27 +169,31 @@ public class ClientGUI extends JFrame implements ChatIF {
         }
     }
 
+    
     class OpenConnectionAction implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
             if (chatClient == null) {
                 try {
+                    host = hostTxF.getText().trim();
+                    port = Integer.parseInt(portTxF.getText().trim());
                     chatClient = new ChatClient(host, port, ClientGUI.this);
+                    ticTacToeUI.setChatClient(chatClient);
                     setButtonsBaseOnConnectionStatus(true);
                 } catch (IOException ioe) {
-                    System.out.println("Error: Can't setup connection!!!!"
+                    display("Error: Can't setup connection!!!!"
                             + " Terminating client.");
-                    System.out.println(ioe.getMessage());
+                    display(ioe.getMessage());
                 }
             } else if (!chatClient.isConnected()) {
                 try {
                     chatClient.openConnection();
                     setButtonsBaseOnConnectionStatus(true);
                 } catch (IOException ioe) {
-                    System.out.println("Error: Can't setup connection!!!!"
+                    display("Error: Can't setup connection!!!!"
                             + " Terminating client.");
-                    System.out.println(ioe.getMessage());
+                    display(ioe.getMessage());
                 }
             }
         }
