@@ -1,6 +1,8 @@
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class overrides some of the methods defined in the abstract superclass
@@ -54,6 +56,18 @@ public class ChatClient extends AbstractClient {
 
         if (env.getId().equals("userListChanged")) {
             handleClientCommand("#who");
+        }
+
+        if (env.getId().equals("forceLogout")) {
+            String reason = env.getContents().toString();
+            clientUI.display("<FORCELOGOUT>");
+            clientUI.display(reason);
+
+            try {
+                closeConnection();
+            } catch (IOException ex) {
+                clientUI.display(ex.getMessage());
+            }
         }
 
         if (env.getId().equals("ttt")) {
@@ -134,7 +148,7 @@ public class ChatClient extends AbstractClient {
             try {
                 closeConnection();
             } catch (IOException e) {
-            };
+            }
 
         }
 
@@ -225,12 +239,6 @@ public class ChatClient extends AbstractClient {
             } catch (IOException e) {
                 clientUI.display("failed to acquire user list");
             }
-        }
-
-        if (message.indexOf("#forceLogout") == 0) {
-            String reason = message.substring("#forceLogout".length());
-            clientUI.display("<FORCELOGOUT>");
-            clientUI.display(reason);
         }
 
         if (message.equals("#tttAccept")) {

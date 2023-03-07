@@ -298,7 +298,10 @@ public class EchoServer extends AbstractServer {
             if (client.getInfo("room").toString().equals(otherClient.getInfo("room").toString())
                     && client.getInfo("userId").toString().equals(otherClient.getInfo("userId").toString())) {
                 try {
-                    client.sendToClient("#forceLogout Someone in room have same name");
+                    Envelope env = new Envelope();
+                    env.setId("forceLogout");
+                    env.setContents("Someone in room have same name");
+                    client.sendToClient(env);
                 } catch (IOException ex) {
                     chatConsole.display("Failed to send forceLogout");
                     chatConsole.display(ex.getMessage());

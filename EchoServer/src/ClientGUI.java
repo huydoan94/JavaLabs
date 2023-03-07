@@ -113,7 +113,7 @@ public class ClientGUI extends JFrame implements ChatIF {
     public void display(String message) {
         if (message.indexOf("<TICTACTOE>") == 0) {
             String command = message.substring("<TICTACTOE>".length());
-            handleTicTacToeCommand(command);
+            handleTicTacToeGUICommand(command);
         } else if (message.equals("<FORCELOGOUT>")) {
             setButtonsBaseOnConnectionStatus(false);
         } else if (message.indexOf("<USERLIST>") == 0) {
@@ -134,7 +134,7 @@ public class ClientGUI extends JFrame implements ChatIF {
         }
     }
 
-    private void handleTicTacToeCommand(String command) {
+    private void handleTicTacToeGUICommand(String command) {
         if ("playing".equals(command)) {
             ticTacToeUI.setVisible(true);
         }
@@ -172,12 +172,18 @@ public class ClientGUI extends JFrame implements ChatIF {
         loginTxF.setEditable(!isConnected && chatClient != null);
         loginB.setEnabled(!isConnected && chatClient != null);
     }
-    
+
     class TicTacToeAction implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
             String targetUser = (String) userListComboBox.getSelectedItem();
+
+            if (targetUser == "guest") {
+                JOptionPane.showMessageDialog(new JFrame(), "You can not invite guest to play");
+                return;
+            }
+
             chatClient.sendTicTacToeInvite(targetUser);
         }
     }
@@ -203,7 +209,6 @@ public class ClientGUI extends JFrame implements ChatIF {
         }
     }
 
-    
     class OpenConnectionAction implements ActionListener {
 
         @Override
