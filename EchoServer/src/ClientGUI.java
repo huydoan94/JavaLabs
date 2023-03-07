@@ -58,8 +58,15 @@ public class ClientGUI extends JFrame implements ChatIF {
         super("Simple Chat GUI");
         setSize(300, 400);
         setLayout(new BorderLayout(5, 5));
+
+        JScrollPane messageListScroll = new JScrollPane(
+                messageList,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
+        add("Center", messageListScroll);
+
         JPanel bottom = new JPanel();
-        add("Center", messageList);
         add("South", bottom);
         bottom.setLayout(new GridLayout(8, 2));
         bottom.add(hostLB);
@@ -67,7 +74,9 @@ public class ClientGUI extends JFrame implements ChatIF {
         bottom.add(portLB);
         bottom.add(portTxF);
         bottom.add(messageLB);
+
         bottom.add(messageTxF);
+
         bottom.add(userListLB);
         bottom.add(userListComboBox);
         bottom.add(openB);
@@ -179,8 +188,16 @@ public class ClientGUI extends JFrame implements ChatIF {
         public void actionPerformed(ActionEvent e) {
             String targetUser = (String) userListComboBox.getSelectedItem();
 
-            if (targetUser == "guest") {
+            if ("guest".equals(targetUser)) {
                 JOptionPane.showMessageDialog(new JFrame(), "You can not invite guest to play");
+                return;
+            }
+
+            if ("guest".equals(chatClient.userName)) {
+                JOptionPane.showMessageDialog(
+                        new JFrame(),
+                        "You must login with name first!\nTry close connection and login with name again"
+                );
                 return;
             }
 
