@@ -43,6 +43,7 @@ public class ServerConsole implements ChatIF {
             }
         } catch (Exception ex) {
             System.out.println("Unexpected error while reading from console!");
+            display(ex.getMessage());
         }
     }
 

@@ -40,6 +40,7 @@ public class EchoServer extends AbstractServer {
                 chatConsole.display("Port is set to " + port);
             } catch (Exception e) {
                 chatConsole.display("Cannot get port number!");
+                chatConsole.display(e.getMessage());
             }
         } else if (message.equals("#start")) {
             try {
@@ -47,19 +48,28 @@ public class EchoServer extends AbstractServer {
                 chatConsole.display("Echo Server is started and ready at port " + this.getPort());
             } catch (Exception ex) {
                 chatConsole.display("ERROR - Could not listen for clients!");
+                chatConsole.display(ex.getMessage());
             }
         } else if (message.equals("#stop")) {
+            Envelope env = new Envelope();
+            env.setId("forceLogout");
+            env.setContents("Server is shutting down, bye!");
+
+            sendToAllClients(env);
+
             try {
                 this.close();
                 chatConsole.display("Echo Server is stopped");
             } catch (IOException ex) {
                 chatConsole.display("Cannot close Echo Server");
+                chatConsole.display(ex.getMessage());
             }
         } else if (message.equals("#quit")) {
             try {
                 this.close();
                 System.exit(0);
             } catch (IOException ex) {
+                chatConsole.display(ex.getMessage());
                 System.exit(255);
             }
         } else if (message.indexOf("#ison") == 0) {
@@ -87,13 +97,13 @@ public class EchoServer extends AbstractServer {
                 target.setInfo("room", room2);
 
                 if (!checkDuplicateUserInRoom(target)) {
-                    notifyUserListChanged(target);
                     chatConsole.display("Moving " + userId + " to room " + room2);
                 } else {
                     target.setInfo("room", room1);
                 }
             }
         }
+        notifyUserListChanged();
     }
 
     public void listUsersInRooms() {
@@ -159,7 +169,7 @@ public class EchoServer extends AbstractServer {
             client.setInfo("room", room);
 
             if (!checkDuplicateUserInRoom(client)) {
-                notifyUserListChanged(client);
+                notifyUserListChanged();
             } else {
                 client.setInfo("userId", prevUserId);
             }
@@ -172,7 +182,7 @@ public class EchoServer extends AbstractServer {
             client.setInfo("room", roomName);
 
             if (!checkDuplicateUserInRoom(client)) {
-                notifyUserListChanged(client);
+                notifyUserListChanged();
             } else {
                 client.setInfo("room", prevRoomName);
             }
@@ -226,9 +236,10 @@ public class EchoServer extends AbstractServer {
 
     public void sendRoomListToClient(ConnectionToClient client) {
         Envelope env = new Envelope();
-        env.setId("who");
         ArrayList<String> userList = new ArrayList<String>();
         String room = client.getInfo("room").toString();
+
+        env.setId("who");
         env.setArg(room);
 
         Thread[] clientThreadList = getClientConnections();
@@ -248,6 +259,7 @@ public class EchoServer extends AbstractServer {
             client.sendToClient(env);
         } catch (Exception e) {
             chatConsole.display("Failed to send userList to client");
+            chatConsole.display(e.getMessage());
         }
     }
 
@@ -262,6 +274,7 @@ public class EchoServer extends AbstractServer {
                     target.sendToClient(msg);
                 } catch (Exception ex) {
                     chatConsole.display("failed to send to client");
+                    chatConsole.display(ex.getMessage());
                 }
             }
         }
@@ -277,6 +290,7 @@ public class EchoServer extends AbstractServer {
                     target.sendToClient(msg);
                 } catch (Exception ex) {
                     chatConsole.display("failed to send to private message");
+                    chatConsole.display(ex.getMessage());
                 }
             }
         }
@@ -312,24 +326,10 @@ public class EchoServer extends AbstractServer {
         return false;
     }
 
-    public void notifyUserListChanged(ConnectionToClient client) {
-        Thread[] clientThreadList = getClientConnections();
-
-        for (Thread clientThreadList1 : clientThreadList) {
-            ConnectionToClient target = (ConnectionToClient) clientThreadList1;
-            try {
-                Envelope env = new Envelope();
-                env.setId("userListChanged");
-                try {
-                    target.sendToClient(env);
-                } catch (IOException e) {
-                    chatConsole.display("Failed to send userList to client");
-                }
-            } catch (Exception ex) {
-                chatConsole.display("failed to send to client");
-            }
-        }
-
+    public void notifyUserListChanged() {
+        Envelope env = new Envelope();
+        env.setId("userListChanged");
+        sendToAllClients(env);
     }
 
     /**
@@ -378,13 +378,13 @@ public class EchoServer extends AbstractServer {
         chatConsole.display("<Client Connected:" + client + ">");
         client.setInfo("room", "lobby");
         client.setInfo("userId", "guest");
-        notifyUserListChanged(client);
+        notifyUserListChanged();
     }
 
     @Override
     protected synchronized void clientException(ConnectionToClient client, Throwable exception) {
         chatConsole.display("Client shutdown");
-        notifyUserListChanged(client);
+        notifyUserListChanged();
     }
 }
 //End of EchoServer class
