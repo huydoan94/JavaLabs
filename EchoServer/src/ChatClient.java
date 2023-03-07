@@ -303,7 +303,6 @@ public class ChatClient extends AbstractClient {
         }
 
         Envelope env = new Envelope();
-        clientUI.display(move + "");
         ticTacToe.updateBoard(move);
 
         if (ticTacToe.getActivePlayer() == 1) {
@@ -313,7 +312,6 @@ public class ChatClient extends AbstractClient {
             ticTacToe.setActivePlayer(1);
             env.setArg(ticTacToe.getPlayer1());
         }
-        clientUI.display(env.getArg());
 
         env.setId("ttt");
         env.setContents(ticTacToe);

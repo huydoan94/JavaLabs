@@ -67,7 +67,6 @@ public class TicTacToe implements Serializable {
 
             if ((int) symbolRow != 0 && (int) board[index][1] != 0 && (int) board[index][2] != 0) {
                 if (board[index][1] == symbolRow && board[index][2] == symbolRow) {
-                    System.out.println("true");
                     setGameState(4);
                     break;
                 }
@@ -75,7 +74,6 @@ public class TicTacToe implements Serializable {
 
             if ((int) symbolCol != 0 && (int) board[1][index] != 0 && (int) board[2][index] != 0) {
                 if (board[1][index] == symbolCol && board[2][index] == symbolCol) {
-                    System.out.println("true");
                     setGameState(4);
                     break;
                 }
@@ -88,7 +86,6 @@ public class TicTacToe implements Serializable {
         // - - X
         if ((int) board[0][0] != 0 && (int) board[1][1] != 0 && (int) board[2][2] != 0) {
             if (board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
-                System.out.println("true");
                 setGameState(4);
             }
         }
@@ -98,12 +95,9 @@ public class TicTacToe implements Serializable {
         // X - -
         if ((int) board[2][0] != 0 && (int) board[1][1] != 0 && (int) board[0][2] != 0) {
             if (board[2][0] == board[1][1] && board[1][1] == board[0][2]) {
-                System.out.println("true");
                 setGameState(4);
             }
         }
-
-        System.out.println("out");
     }
 
     public void updateBoard(int move) {
