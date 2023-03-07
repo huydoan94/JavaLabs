@@ -21,7 +21,7 @@ public class ChatClient extends AbstractClient {
      * enableClientProcessTicTacToe to enable processing tic tac toe content
      * native on client instead of validating on server
      */
-    boolean enableClientProcessTicTacToe = true;
+    boolean enableClientProcessTicTacToe = false;
 
     //Constructors ****************************************************
     /**
