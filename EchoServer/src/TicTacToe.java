@@ -11,14 +11,15 @@ import java.io.Serializable;
  * @author nhath
  */
 public class TicTacToe implements Serializable {
-
+    // Instance variables for players, active player, game state, and the game board
     private String player1;
     private String player2;
 
     private int activePlayer;
     private int gameState;
     private char[][] board;
-
+    
+    // Getters and setters for player1, player2, activePlayer, gameState, and board
     public String getPlayer1() {
         return player1;
     }
@@ -59,19 +60,20 @@ public class TicTacToe implements Serializable {
         this.board = board;
     }
 
+    // Method to check for a winning move on the board
     public void checkwin() {
         // Check for rows and columns
         for (int index = 0; index < 3; index++) {
             char symbolRow = board[index][0];
             char symbolCol = board[0][index];
-
+            // Check for a winning row
             if ((int) symbolRow != 0 && (int) board[index][1] != 0 && (int) board[index][2] != 0) {
                 if (board[index][1] == symbolRow && board[index][2] == symbolRow) {
                     setGameState(4);
                     break;
                 }
             }
-
+            // Check for a winning column
             if ((int) symbolCol != 0 && (int) board[1][index] != 0 && (int) board[2][index] != 0) {
                 if (board[1][index] == symbolCol && board[2][index] == symbolCol) {
                     setGameState(4);
@@ -80,7 +82,7 @@ public class TicTacToe implements Serializable {
             }
 
         }
-
+        // Check for a winning diagonal from top-left to bottom-right
         // X - -
         // - X -
         // - - X
@@ -89,7 +91,7 @@ public class TicTacToe implements Serializable {
                 setGameState(4);
             }
         }
-
+        // Check for a winning diagonal from top-right to bottom-left
         // - - X
         // - X -
         // X - -
@@ -99,13 +101,14 @@ public class TicTacToe implements Serializable {
             }
         }
     }
-
+    // Method to update the game board with a player's move
     public void updateBoard(int move) {
         if (move >= 9 || move < 0) {
             return;
         }
 
         char symbol;
+        // Determine which player's symbol to use
         if (activePlayer == 1) {
             symbol = 'X';
         } else {
