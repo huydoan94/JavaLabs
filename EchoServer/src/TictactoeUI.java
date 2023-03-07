@@ -18,7 +18,7 @@ import javax.swing.JFrame;
  */
 public class TictactoeUI extends JFrame {
 
-    final String DEFAULT_SYMBOL = "-";
+    static final String DEFAULT_SYMBOL = "-";
 
     ChatClient chatClient;
     ArrayList<JButton> buttons;
