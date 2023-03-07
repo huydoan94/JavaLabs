@@ -312,6 +312,14 @@ public class ChatClient extends AbstractClient {
         }
 
         Envelope env = new Envelope();
+
+        // Prevent override value
+        char board[][] = ticTacToe.getBoard();
+        if ((int) board[move / 3][move % 3] != 0) {
+            clientUI.display("You can not take that position! Try another.");
+            return;
+        }
+
         ticTacToe.updateBoard(move);
 
         if (ticTacToe.getActivePlayer() == 1) {
