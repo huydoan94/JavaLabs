@@ -1,8 +1,6 @@
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This class overrides some of the methods defined in the abstract superclass
@@ -271,6 +269,12 @@ public class ChatClient extends AbstractClient {
 
         Envelope env = new Envelope();
         String targetUser = ticTacToe.getPlayer1();
+
+        if (targetUser.equals(userName)) {
+            clientUI.display("Can not accept game yourself!");
+            return;
+        }
+
         ticTacToe.setPlayer2(userName);
         ticTacToe.setGameState(3);
         ticTacToe.setActivePlayer(1);

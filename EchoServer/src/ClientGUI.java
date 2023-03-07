@@ -189,6 +189,16 @@ public class ClientGUI extends JFrame implements ChatIF {
         loginB.setEnabled(!isConnected && chatClient != null);
         roomB.setEnabled(isConnected);
         roomTxF.setEnabled(isConnected);
+
+        // For tic tac toe, close the board (if showing) whenever connection is closed
+        if (!isConnected) {
+            // Just send decline for sure
+            // If no game is present, logic handled in sendTicTacToeDecline
+            if (chatClient != null) {
+                chatClient.sendTicTacToeDecline();
+            }
+            ticTacToeUI.setVisible(false);
+        }
     }
 
     class TicTacToeAction implements ActionListener {
@@ -270,8 +280,8 @@ public class ClientGUI extends JFrame implements ChatIF {
         public void actionPerformed(ActionEvent e) {
             if (chatClient != null && chatClient.isConnected()) {
                 try {
-                    chatClient.closeConnection();
                     setButtonsBaseOnConnectionStatus(false);
+                    chatClient.closeConnection();
                 } catch (IOException ex) {
                     display(ex.getMessage());
                 }
@@ -285,8 +295,8 @@ public class ClientGUI extends JFrame implements ChatIF {
         public void actionPerformed(ActionEvent e) {
             if (chatClient != null && chatClient.isConnected()) {
                 try {
+                    setButtonsBaseOnConnectionStatus(false);
                     chatClient.closeConnection();
-
                 } catch (IOException ex) {
                 }
             }
@@ -302,6 +312,12 @@ public class ClientGUI extends JFrame implements ChatIF {
             if (room.length() == 0) {
                 room = "lobby";
             }
+
+            // Close tic tac toe game if trying to change room
+            // Just send decline for sure
+            // If no game is present, logic handled in sendTicTacToeDecline
+            chatClient.sendTicTacToeDecline();
+            ticTacToeUI.setVisible(false);
             chatClient.handleMessageFromClientUI("#join " + room);
         }
     }
