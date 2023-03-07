@@ -98,6 +98,20 @@ public class TicTacToe implements Serializable {
                 setGameState(4);
             }
         }
+
+        // Check for draw (no more postition to play)
+        if (getGameState() == 3) {
+            for (int i = 0; i < 9; i++) {
+                // If there are still empty space, get out of this function
+                if ((int) board[i / 3][i % 3] == 0) {
+                    return;
+                }
+            }
+
+            // If finding empty above doesn't work
+            // Set game state to 2 to draw!
+            setGameState(2);
+        }
     }
 
     public void updateBoard(int move) {
