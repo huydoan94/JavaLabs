@@ -292,7 +292,12 @@ public class ChatClient extends AbstractClient {
         }
 
         Envelope env = new Envelope();
-        String targetUser = ticTacToe.getPlayer1();
+        String targetUser;
+        if (userName.equals(ticTacToe.getPlayer1())) {
+            targetUser = ticTacToe.getPlayer2();
+        } else {
+            targetUser = ticTacToe.getPlayer1();
+        }
         ticTacToe.setGameState(2);
 
         env.setId("ttt");

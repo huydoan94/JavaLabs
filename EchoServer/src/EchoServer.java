@@ -216,6 +216,33 @@ public class EchoServer extends AbstractServer {
             ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
             if (target.getInfo("userId").toString().equals(env.getArg())) {
                 try {
+                    // This time we need to check game status of receiver
+                    TicTacToe ongoingContent = (TicTacToe) target.getInfo("ttt");
+
+                    // Do not invite other user which is playing (the receiver)!
+                    if (ongoingContent != null && ongoingContent.getGameState() == 3) {
+                        if (!client.getInfo("userId").toString().equals(ongoingContent.getPlayer1())
+                                && !client.getInfo("userId").toString().equals(ongoingContent.getPlayer2())) {
+                            client.sendToClient("<ADMIN>Player " + env.getArg() + " is playing!");
+                            break;
+                        }
+                    }
+
+                    // This time we need to check game status of sender
+                    ongoingContent = (TicTacToe) client.getInfo("ttt");
+
+                    // Don't invite again if you are playing!
+                    if (ongoingContent != null
+                            && ongoingContent.getGameState() == 3
+                            && ticTacToeContent.getGameState() == 1) {
+                        client.sendToClient("<ADMIN>You are playing!");
+
+                        // And tell client to keep track of ongoing game
+                        env.setContents(ongoingContent);
+                        client.sendToClient(env);
+                        break;
+                    }
+
                     target.sendToClient(env);
 
                     // Except invite, message must be broadcast to both users
