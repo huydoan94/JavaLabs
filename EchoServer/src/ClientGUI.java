@@ -262,14 +262,8 @@ public class ClientGUI extends JFrame implements ChatIF {
                     display(ioe.getMessage());
                 }
             } else if (!chatClient.isConnected()) {
-                try {
-                    chatClient.openConnection();
-                    setButtonsBaseOnConnectionStatus(true);
-                } catch (IOException ioe) {
-                    display("Error: Can't setup connection!!!!"
-                            + " Terminating client.");
-                    display(ioe.getMessage());
-                }
+                chatClient.handleMessageFromClientUI("#login");
+                setButtonsBaseOnConnectionStatus(true);
             }
         }
     }
