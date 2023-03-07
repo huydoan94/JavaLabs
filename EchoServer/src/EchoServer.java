@@ -11,16 +11,19 @@ public class EchoServer extends AbstractServer {
      */
     final public static int DEFAULT_PORT = 5555;
 
+    private ChatIF chatConsole;
+
     //Constructors ****************************************************
     /**
      * Constructs an instance of the echo server.
      *
      * @param port The port number to connect on.
      */
-    public EchoServer(int port) {
+    public EchoServer(int port, ChatIF chatConsole) {
         super(port);
 
-        System.out.println("Echo Server is initialized with port " + port);
+        this.chatConsole = chatConsole;
+        chatConsole.display("Echo Server is initialized with port " + port);
     }
 
     //Instance methods ************************************************
@@ -34,23 +37,23 @@ public class EchoServer extends AbstractServer {
             try {
                 int port = parseInt(message.substring("#setPort".length()).trim());
                 this.setPort(port);
-                System.out.println("Port is set to " + port);
+                chatConsole.display("Port is set to " + port);
             } catch (Exception e) {
-                System.out.println("Cannot get port number!");
+                chatConsole.display("Cannot get port number!");
             }
         } else if (message.equals("#start")) {
             try {
                 this.listen(); //Start listening for connections
-                System.out.println("Echo Server is started and ready at port " + this.getPort());
+                chatConsole.display("Echo Server is started and ready at port " + this.getPort());
             } catch (Exception ex) {
-                System.out.println("ERROR - Could not listen for clients!");
+                chatConsole.display("ERROR - Could not listen for clients!");
             }
         } else if (message.equals("#stop")) {
             try {
                 this.close();
-                System.out.println("Echo Server is stopped");
+                chatConsole.display("Echo Server is stopped");
             } catch (IOException ex) {
-                System.out.println("Cannot close Echo Server");
+                chatConsole.display("Cannot close Echo Server");
             }
         } else if (message.equals("#quit")) {
             try {
@@ -82,7 +85,13 @@ public class EchoServer extends AbstractServer {
             String room = target.getInfo("room").toString();
             if (room.equals(room1)) {
                 target.setInfo("room", room2);
-                System.out.println("Moving " + userId + " to room " + room2);
+
+                if (!checkDuplicateUserInRoom(target)) {
+                    notifyUserListChanged(target);
+                    chatConsole.display("Moving " + userId + " to room " + room2);
+                } else {
+                    target.setInfo("room", room1);
+                }
             }
         }
     }
@@ -93,7 +102,7 @@ public class EchoServer extends AbstractServer {
             ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
             String userId = target.getInfo("userId").toString();
             String room = target.getInfo("room").toString();
-            System.out.println(userId + " - " + room);
+            chatConsole.display(userId + " - " + room);
         }
     }
 
@@ -104,12 +113,12 @@ public class EchoServer extends AbstractServer {
             String userId = target.getInfo("userId").toString();
             String room = target.getInfo("room").toString();
             if (user.equals(userId)) {
-                System.out.println(user + " is on in room " + room);
+                chatConsole.display(user + " is on in room " + room);
                 return;
             }
         }
 
-        System.out.println(user + " is not logged in");
+        chatConsole.display(user + " is not logged in");
     }
 
     /**
@@ -123,7 +132,7 @@ public class EchoServer extends AbstractServer {
             Envelope env = (Envelope) msg;
             handleCommandFromClient(env, client);
         } else {
-            System.out.println("Message received: " + msg + " from " + client);
+            chatConsole.display("Message received: " + msg + " from " + client);
 
             String userId = client.getInfo("userId").toString();
 
@@ -134,19 +143,39 @@ public class EchoServer extends AbstractServer {
     public void handleCommandFromClient(Envelope env, ConnectionToClient client) {
         if (env.getId().equals("login")) {
             String userId = env.getContents().toString();
+            String room = client.getInfo("room").toString();
+
+            if (room.length() == 0) {
+                room = "lobby";
+            }
+
             if (userId.length() == 0) {
                 userId = "guest";
             }
 
+            String prevUserId = client.getInfo("userId").toString();
+
             client.setInfo("userId", userId);
-            client.setInfo("room", "lobby");
-            notifyUserListChanged(client);
+            client.setInfo("room", room);
+
+            if (!checkDuplicateUserInRoom(client)) {
+                notifyUserListChanged(client);
+            } else {
+                client.setInfo("userId", prevUserId);
+            }
         }
 
         if (env.getId().equals("join")) {
             String roomName = env.getContents().toString();
+            String prevRoomName = client.getInfo("room").toString();
+
             client.setInfo("room", roomName);
-            notifyUserListChanged(client);
+
+            if (!checkDuplicateUserInRoom(client)) {
+                notifyUserListChanged(client);
+            } else {
+                client.setInfo("room", prevRoomName);
+            }
         }
 
         if (env.getId().equals("pm")) {
@@ -164,6 +193,35 @@ public class EchoServer extends AbstractServer {
         if (env.getId().equals("who")) {
             sendRoomListToClient(client);
         }
+
+        if (env.getId().indexOf("ttt") == 0) {
+            handleTicTacToeCommand(client, env);
+        }
+    }
+
+    public void handleTicTacToeCommand(ConnectionToClient client, Envelope env) {
+        Thread[] clientThreadList = getClientConnections();
+        TicTacToe ticTacToeContent = (TicTacToe) env.getContents();
+        for (int i = 0; i < clientThreadList.length; i++) {
+            ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
+            if (target.getInfo("userId").toString().equals(env.getArg())) {
+                try {
+                    target.sendToClient(env);
+
+                    // Except invite, message must be broadcast to both users
+                    if (ticTacToeContent.getGameState() != 1) {
+                        client.sendToClient(env);
+                    }
+
+                    target.setInfo("ttt", ticTacToeContent);
+                    client.setInfo("ttt", ticTacToeContent);
+                } catch (IOException ex) {
+                    chatConsole.display("Cannot send tictactoe command to client");
+                    chatConsole.display(ex.getMessage());
+                }
+                break;
+            }
+        }
     }
 
     public void sendRoomListToClient(ConnectionToClient client) {
@@ -177,8 +235,10 @@ public class EchoServer extends AbstractServer {
         for (int i = 0; i < clientThreadList.length; i++) {
             ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
             String targetRoom = target.getInfo("room").toString();
-            if (targetRoom.equals(room)) {
-                userList.add(target.getInfo("userId").toString());
+
+            if (targetRoom.equals(room) && !target.equals(client)) {
+                String encodedString = target.getInfo("userId").toString().replaceAll("&", "&amp;");
+                userList.add(encodedString);
             }
         }
 
@@ -187,7 +247,7 @@ public class EchoServer extends AbstractServer {
         try {
             client.sendToClient(env);
         } catch (Exception e) {
-            System.out.println("Failed to send userList to client");
+            chatConsole.display("Failed to send userList to client");
         }
     }
 
@@ -201,7 +261,7 @@ public class EchoServer extends AbstractServer {
                 try {
                     target.sendToClient(msg);
                 } catch (Exception ex) {
-                    System.out.println("failed to send to client");
+                    chatConsole.display("failed to send to client");
                 }
             }
         }
@@ -216,10 +276,37 @@ public class EchoServer extends AbstractServer {
                 try {
                     target.sendToClient(msg);
                 } catch (Exception ex) {
-                    System.out.println("failed to send to private message");
+                    chatConsole.display("failed to send to private message");
                 }
             }
         }
+    }
+
+    public boolean checkDuplicateUserInRoom(ConnectionToClient client) {
+        Thread[] clientThreadList = getClientConnections();
+        for (Thread t : clientThreadList) {
+            ConnectionToClient otherClient = (ConnectionToClient) t;
+
+            if (client.equals(otherClient)) {
+                continue;
+            }
+
+            if (client.getInfo("userId").toString().equals("guest")) {
+                continue;
+            }
+
+            if (client.getInfo("room").toString().equals(otherClient.getInfo("room").toString())
+                    && client.getInfo("userId").toString().equals(otherClient.getInfo("userId").toString())) {
+                try {
+                    client.sendToClient("#forceLogout Someone in room have same name");
+                } catch (IOException ex) {
+                    chatConsole.display("Failed to send forceLogout");
+                    chatConsole.display(ex.getMessage());
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     public void notifyUserListChanged(ConnectionToClient client) {
@@ -233,10 +320,10 @@ public class EchoServer extends AbstractServer {
                 try {
                     target.sendToClient(env);
                 } catch (IOException e) {
-                    System.out.println("Failed to send userList to client");
+                    chatConsole.display("Failed to send userList to client");
                 }
             } catch (Exception ex) {
-                System.out.println("failed to send to client");
+                chatConsole.display("failed to send to client");
             }
         }
 
@@ -247,7 +334,7 @@ public class EchoServer extends AbstractServer {
      * starts listening for connections.
      */
     protected void serverStarted() {
-        System.out.println("Server listening for connections on port " + getPort());
+        chatConsole.display("Server listening for connections on port " + getPort());
     }
 
     /**
@@ -255,7 +342,7 @@ public class EchoServer extends AbstractServer {
      * stops listening for connections.
      */
     protected void serverStopped() {
-        System.out.println("Server has stopped listening for connections.");
+        chatConsole.display("Server has stopped listening for connections.");
     }
 
 //    //Class methods ***************************************************
@@ -280,13 +367,12 @@ public class EchoServer extends AbstractServer {
 //        try {
 //            sv.listen(); //Start listening for connections
 //        } catch (Exception ex) {
-//            System.out.println("ERROR - Could not listen for clients!");
+//            chatConsole.display("ERROR - Could not listen for clients!");
 //        }
 //
 //    }
     protected void clientConnected(ConnectionToClient client) {
-
-        System.out.println("<Client Connected:" + client + ">");
+        chatConsole.display("<Client Connected:" + client + ">");
         client.setInfo("room", "lobby");
         client.setInfo("userId", "guest");
         notifyUserListChanged(client);
@@ -294,7 +380,7 @@ public class EchoServer extends AbstractServer {
 
     @Override
     protected synchronized void clientException(ConnectionToClient client, Throwable exception) {
-        System.out.println("Client shutdown");
+        chatConsole.display("Client shutdown");
         notifyUserListChanged(client);
     }
 }

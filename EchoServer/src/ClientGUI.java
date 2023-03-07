@@ -12,8 +12,6 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ClientGUI extends JFrame implements ChatIF {
 
@@ -113,18 +111,53 @@ public class ClientGUI extends JFrame implements ChatIF {
 
     @Override
     public void display(String message) {
-        if (message.indexOf("<USERLIST>") == 0) {
-            String usersString = message.substring(10);
+        if (message.indexOf("<TICTACTOE>") == 0) {
+            String command = message.substring("<TICTACTOE>".length());
+            handleTicTacToeCommand(command);
+        } else if (message.equals("<FORCELOGOUT>")) {
+            setButtonsBaseOnConnectionStatus(false);
+        } else if (message.indexOf("<USERLIST>") == 0) {
+            String usersString = message.substring("<USERLIST>".length());
             String[] users = usersString.split("&");
 
             userListComboBox.removeAllItems();
+
             for (String user : users) {
+                if (user.length() == 0) {
+                    continue;
+                }
+
                 userListComboBox.addItem(user.replaceAll("&amp;", "&"));
             }
         } else {
-            messageList.insert(message + "\n", 0);
+            messageList.insert("> " + message + "\n", 0);
+        }
+    }
+
+    private void handleTicTacToeCommand(String command) {
+        if ("playing".equals(command)) {
+            ticTacToeUI.setVisible(true);
         }
 
+        if ("declined".equals(command)) {
+            ticTacToeUI.setVisible(false);
+        }
+
+        if ("active".equals(command)) {
+            ticTacToeUI.setActive(true);
+        }
+
+        if ("inactive".equals(command)) {
+            ticTacToeUI.setActive(false);
+        }
+
+        if (command.indexOf("board") == 0) {
+            String boardString = command.substring("board".length());
+            String[] board = boardString.split(" ");
+            for (int i = 0; i < 9; i++) {
+                ticTacToeUI.setButtonSymbol(i, board[i]);
+            }
+        }
     }
 
     private void setButtonsBaseOnConnectionStatus(boolean isConnected) {
@@ -144,7 +177,8 @@ public class ClientGUI extends JFrame implements ChatIF {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            
+            String targetUser = (String) userListComboBox.getSelectedItem();
+            chatClient.sendTicTacToeInvite(targetUser);
         }
     }
 
@@ -153,7 +187,7 @@ public class ClientGUI extends JFrame implements ChatIF {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (chatClient != null && chatClient.isConnected()) {
-                chatClient.handleMessageFromClientUI(messageTxF.getText());
+                chatClient.handleMessageFromClientUI(messageTxF.getText().trim());
             } else {
                 display("<SYSTEM>Does not connect to server");
             }
@@ -208,7 +242,7 @@ public class ClientGUI extends JFrame implements ChatIF {
                     chatClient.closeConnection();
                     setButtonsBaseOnConnectionStatus(false);
                 } catch (IOException ex) {
-                    System.out.println(ex.getMessage());
+                    display(ex.getMessage());
                 }
             }
         }
@@ -228,5 +262,4 @@ public class ClientGUI extends JFrame implements ChatIF {
             System.exit(0);
         }
     }
-
 }

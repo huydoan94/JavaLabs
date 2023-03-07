@@ -29,7 +29,7 @@ public class ServerConsole implements ChatIF {
     }
 
     public ServerConsole(int port) {
-        server = new EchoServer(port);
+        server = new EchoServer(port, this);
     }
 
     private void readAdminInput() {
