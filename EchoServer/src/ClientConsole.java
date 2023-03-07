@@ -101,6 +101,7 @@ public class ClientConsole implements ChatIF {
             return;
         }
 
+        // Properly show user list
         if (message.indexOf("<USERLIST>") == 0) {
             String usersString = message.substring("<USERLIST>".length());
             String[] users = usersString.split("&");
