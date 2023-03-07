@@ -56,6 +56,18 @@ public class ChatClient extends AbstractClient {
             handleClientCommand("#who");
         }
 
+        if (env.getId().equals("forceLogout")) {
+            String reason = env.getContents().toString();
+            clientUI.display("<FORCELOGOUT>");
+            clientUI.display(reason);
+
+            try {
+                closeConnection();
+            } catch (IOException ex) {
+                clientUI.display(ex.getMessage());
+            }
+        }
+
         if (env.getId().equals("ttt")) {
             handleServerTicTacToeCommand(env);
         }
@@ -134,7 +146,7 @@ public class ChatClient extends AbstractClient {
             try {
                 closeConnection();
             } catch (IOException e) {
-            };
+            }
 
         }
 
@@ -227,12 +239,6 @@ public class ChatClient extends AbstractClient {
             }
         }
 
-        if (message.indexOf("#forceLogout") == 0) {
-            String reason = message.substring("#forceLogout".length());
-            clientUI.display("<FORCELOGOUT>");
-            clientUI.display(reason);
-        }
-
         if (message.equals("#tttAccept")) {
             sendTicTacToeAccept();
         }
@@ -263,6 +269,12 @@ public class ChatClient extends AbstractClient {
 
         Envelope env = new Envelope();
         String targetUser = ticTacToe.getPlayer1();
+
+        if (targetUser.equals(userName)) {
+            clientUI.display("Can not accept game yourself!");
+            return;
+        }
+
         ticTacToe.setPlayer2(userName);
         ticTacToe.setGameState(3);
         ticTacToe.setActivePlayer(1);
@@ -280,7 +292,12 @@ public class ChatClient extends AbstractClient {
         }
 
         Envelope env = new Envelope();
-        String targetUser = ticTacToe.getPlayer1();
+        String targetUser;
+        if (userName.equals(ticTacToe.getPlayer1())) {
+            targetUser = ticTacToe.getPlayer2();
+        } else {
+            targetUser = ticTacToe.getPlayer1();
+        }
         ticTacToe.setGameState(2);
 
         env.setId("ttt");
@@ -295,7 +312,6 @@ public class ChatClient extends AbstractClient {
         }
 
         Envelope env = new Envelope();
-        clientUI.display(move + "");
         ticTacToe.updateBoard(move);
 
         if (ticTacToe.getActivePlayer() == 1) {
@@ -305,7 +321,6 @@ public class ChatClient extends AbstractClient {
             ticTacToe.setActivePlayer(1);
             env.setArg(ticTacToe.getPlayer1());
         }
-        clientUI.display(env.getArg());
 
         env.setId("ttt");
         env.setContents(ticTacToe);

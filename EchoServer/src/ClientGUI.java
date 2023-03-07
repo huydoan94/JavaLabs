@@ -23,6 +23,7 @@ public class ClientGUI extends JFrame implements ChatIF {
     private final JButton sendB = new JButton("Send");
     private final JButton quitB = new JButton("Quit");
     private final JButton loginB = new JButton("Login");
+    private final JButton roomB = new JButton("Change Room");
     private final JButton ticTacToeB = new JButton("Tic Tac Toe");
     private final JComboBox userListComboBox = new JComboBox();
 
@@ -30,6 +31,7 @@ public class ClientGUI extends JFrame implements ChatIF {
     private final JTextField hostTxF = new JTextField("");
     private final JTextField messageTxF = new JTextField("");
     private final JTextField loginTxF = new JTextField("");
+    private final JTextField roomTxF = new JTextField("");
     private final JLabel userListLB = new JLabel("User list: ", JLabel.RIGHT);
     private final JLabel portLB = new JLabel("Port: ", JLabel.RIGHT);
     private final JLabel hostLB = new JLabel("Host: ", JLabel.RIGHT);
@@ -58,10 +60,17 @@ public class ClientGUI extends JFrame implements ChatIF {
         super("Simple Chat GUI");
         setSize(300, 400);
         setLayout(new BorderLayout(5, 5));
+
+        JScrollPane messageListScroll = new JScrollPane(
+                messageList,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
+        add("Center", messageListScroll);
+
         JPanel bottom = new JPanel();
-        add("Center", messageList);
         add("South", bottom);
-        bottom.setLayout(new GridLayout(8, 2));
+        bottom.setLayout(new GridLayout(9, 2));
         bottom.add(hostLB);
         bottom.add(hostTxF);
         bottom.add(portLB);
@@ -76,10 +85,14 @@ public class ClientGUI extends JFrame implements ChatIF {
         bottom.add(closeB);
         bottom.add(loginB);
         bottom.add(loginTxF);
+        bottom.add(roomB);
+        bottom.add(roomTxF);
         bottom.add(quitB);
 
         hostTxF.setText(host);
         portTxF.setText(port + "");
+
+        getRootPane().setDefaultButton(sendB);
         setVisible(true);
 
         ticTacToeUI = new TictactoeUI();
@@ -99,6 +112,9 @@ public class ClientGUI extends JFrame implements ChatIF {
         LoginAction loginAction = new LoginAction();
         loginB.addActionListener(loginAction);
 
+        RoomAction roomAction = new RoomAction();
+        roomB.addActionListener(roomAction);
+
         OpenConnectionAction openButtonAction = new OpenConnectionAction();
         openB.addActionListener(openButtonAction);
 
@@ -113,7 +129,7 @@ public class ClientGUI extends JFrame implements ChatIF {
     public void display(String message) {
         if (message.indexOf("<TICTACTOE>") == 0) {
             String command = message.substring("<TICTACTOE>".length());
-            handleTicTacToeCommand(command);
+            handleTicTacToeGUICommand(command);
         } else if (message.equals("<FORCELOGOUT>")) {
             setButtonsBaseOnConnectionStatus(false);
         } else if (message.indexOf("<USERLIST>") == 0) {
@@ -134,7 +150,7 @@ public class ClientGUI extends JFrame implements ChatIF {
         }
     }
 
-    private void handleTicTacToeCommand(String command) {
+    private void handleTicTacToeGUICommand(String command) {
         if ("playing".equals(command)) {
             ticTacToeUI.setVisible(true);
         }
@@ -171,13 +187,39 @@ public class ClientGUI extends JFrame implements ChatIF {
         closeB.setEnabled(isConnected);
         loginTxF.setEditable(!isConnected && chatClient != null);
         loginB.setEnabled(!isConnected && chatClient != null);
+        roomB.setEnabled(isConnected);
+        roomTxF.setEnabled(isConnected);
+
+        // For tic tac toe, close the board (if showing) whenever connection is closed
+        if (!isConnected) {
+            // Just send decline for sure
+            // If no game is present, logic handled in sendTicTacToeDecline
+            if (chatClient != null) {
+                chatClient.sendTicTacToeDecline();
+            }
+            ticTacToeUI.setVisible(false);
+        }
     }
-    
+
     class TicTacToeAction implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
             String targetUser = (String) userListComboBox.getSelectedItem();
+
+            if ("guest".equals(targetUser)) {
+                JOptionPane.showMessageDialog(new JFrame(), "You can not invite guest to play");
+                return;
+            }
+
+            if ("guest".equals(chatClient.userName)) {
+                JOptionPane.showMessageDialog(
+                        new JFrame(),
+                        "You must login with name first!\nTry close connection and login with name again"
+                );
+                return;
+            }
+
             chatClient.sendTicTacToeInvite(targetUser);
         }
     }
@@ -203,7 +245,6 @@ public class ClientGUI extends JFrame implements ChatIF {
         }
     }
 
-    
     class OpenConnectionAction implements ActionListener {
 
         @Override
@@ -239,8 +280,8 @@ public class ClientGUI extends JFrame implements ChatIF {
         public void actionPerformed(ActionEvent e) {
             if (chatClient != null && chatClient.isConnected()) {
                 try {
-                    chatClient.closeConnection();
                     setButtonsBaseOnConnectionStatus(false);
+                    chatClient.closeConnection();
                 } catch (IOException ex) {
                     display(ex.getMessage());
                 }
@@ -254,12 +295,30 @@ public class ClientGUI extends JFrame implements ChatIF {
         public void actionPerformed(ActionEvent e) {
             if (chatClient != null && chatClient.isConnected()) {
                 try {
+                    setButtonsBaseOnConnectionStatus(false);
                     chatClient.closeConnection();
-
                 } catch (IOException ex) {
                 }
             }
             System.exit(0);
+        }
+    }
+
+    class RoomAction implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String room = roomTxF.getText().trim();
+            if (room.length() == 0) {
+                room = "lobby";
+            }
+
+            // Close tic tac toe game if trying to change room
+            // Just send decline for sure
+            // If no game is present, logic handled in sendTicTacToeDecline
+            chatClient.sendTicTacToeDecline();
+            ticTacToeUI.setVisible(false);
+            chatClient.handleMessageFromClientUI("#join " + room);
         }
     }
 }

@@ -18,6 +18,8 @@ import javax.swing.JFrame;
  */
 public class TictactoeUI extends JFrame {
 
+    final String DEFAULT_SYMBOL = "-";
+
     ChatClient chatClient;
     ArrayList<JButton> buttons;
 
@@ -29,7 +31,7 @@ public class TictactoeUI extends JFrame {
         buttons = new ArrayList<>();
         // create buttons and add them to the frame
         for (int i = 0; i < 9; i++) {
-            JButton button = new JButton("-");
+            JButton button = new JButton(DEFAULT_SYMBOL);
             button.setFont(new Font("Arial", Font.PLAIN, 30));
             buttons.add(button);
             add(button);
@@ -65,6 +67,11 @@ public class TictactoeUI extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            // Prevent clicking on button that has symbol
+            if (!button.getText().equals(DEFAULT_SYMBOL)) {
+                return;
+            }
+
             chatClient.sendTicTacToeMove(cell);
         }
     }
