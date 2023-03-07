@@ -210,54 +210,233 @@ public class EchoServer extends AbstractServer {
     }
 
     public void handleTicTacToeCommand(ConnectionToClient client, Envelope env) {
+        Envelope result = null;
+        ConnectionToClient target = null;
         Thread[] clientThreadList = getClientConnections();
-        TicTacToe ticTacToeContent = (TicTacToe) env.getContents();
-        for (int i = 0; i < clientThreadList.length; i++) {
-            ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
-            if (target.getInfo("userId").toString().equals(env.getArg())) {
-                try {
-                    // This time we need to check game status of receiver
-                    TicTacToe ongoingContent = (TicTacToe) target.getInfo("ttt");
+        TicTacToe ticTacToeContent = (TicTacToe) client.getInfo("ttt");
 
-                    // Do not invite other user which is playing (the receiver)!
-                    if (ongoingContent != null && ongoingContent.getGameState() == 3) {
-                        if (!client.getInfo("userId").toString().equals(ongoingContent.getPlayer1())
-                                && !client.getInfo("userId").toString().equals(ongoingContent.getPlayer2())) {
-                            client.sendToClient("<ADMIN>Player " + env.getArg() + " is playing!");
-                            break;
-                        }
-                    }
+        // If TicTacToe in content, meaning TicTacToe processed by client
+        if (env.getContents() instanceof TicTacToe) {
+            ticTacToeContent = (TicTacToe) env.getContents();
+        }
 
-                    // This time we need to check game status of sender
-                    ongoingContent = (TicTacToe) client.getInfo("ttt");
+        for (Thread ct : clientThreadList) {
+            ConnectionToClient c = (ConnectionToClient) ct;
+            String targetName = c.getInfo("userId").toString();
 
-                    // Don't invite again if you are playing!
-                    if (ongoingContent != null
-                            && ongoingContent.getGameState() == 3
-                            && ticTacToeContent.getGameState() == 1) {
-                        client.sendToClient("<ADMIN>You are playing!");
-
-                        // And tell client to keep track of ongoing game
-                        env.setContents(ongoingContent);
-                        client.sendToClient(env);
-                        break;
-                    }
-
-                    target.sendToClient(env);
-
-                    // Except invite, message must be broadcast to both users
-                    if (ticTacToeContent.getGameState() != 1) {
-                        client.sendToClient(env);
-                    }
-
-                    target.setInfo("ttt", ticTacToeContent);
-                    client.setInfo("ttt", ticTacToeContent);
-                } catch (IOException ex) {
-                    chatConsole.display("Cannot send tictactoe command to client");
-                    chatConsole.display(ex.getMessage());
-                }
-                break;
+            if (c.equals(client)) {
+                continue;
             }
+
+            // For inviting, find from arg to get target user
+            if (env.getArg() != null && !env.getArg().isEmpty() && targetName.equals(env.getArg())) {
+                target = c;
+                break;
+            } else if (ticTacToeContent != null) {// Else just find from tic tac toe content
+                if (targetName.equals(ticTacToeContent.getPlayer1())) {
+                    target = c;
+                    break;
+                } else if (targetName.equals(ticTacToeContent.getPlayer2())) {
+                    target = c;
+                    break;
+                }
+            }
+        }
+
+        try {
+            if (target == null) {
+                client.sendToClient("<ADMIN>Target user is not exist");
+                return;
+            }
+
+            // This time we need to check game status of receiver
+            TicTacToe ongoingContent = (TicTacToe) target.getInfo("ttt");
+
+            // Do not invite other user which is playing (the receiver)!
+            if (ongoingContent != null && ongoingContent.getGameState() == 3) {
+                if (!client.getInfo("userId").toString().equals(ongoingContent.getPlayer1())
+                        && !client.getInfo("userId").toString().equals(ongoingContent.getPlayer2())) {
+                    client.sendToClient("<ADMIN>Player " + env.getArg() + " is playing!");
+                    return;
+                }
+            }
+
+            // This time we need to check game status of sender
+            ongoingContent = (TicTacToe) client.getInfo("ttt");
+
+            // Don't invite again if you are playing!
+            if (ongoingContent != null && ongoingContent.getGameState() == 3
+                    && env.getId().equals("tttInvite")) {
+                client.sendToClient("<ADMIN>You are playing!");
+
+                // And tell client to keep track of ongoing game
+                env.setContents(ongoingContent);
+                client.sendToClient(env);
+                return;
+            }
+
+            if (env.getId().equals("tttInvite")) {
+                String targetUser = env.getArg();
+                result = onTicTacToeInvite(targetUser, client);
+            }
+
+            if (env.getId().equals("tttAccept")) {
+                result = onTicTacToeAccept(ticTacToeContent, client);
+            }
+
+            if (env.getId().equals("tttDecline")) {
+                result = onTicTacToeDecline(ticTacToeContent, client);
+            }
+
+            if (env.getId().equals("tttMove")) {
+                int move = Integer.parseInt(env.getContents().toString());
+                result = onTicTacToeMove(move, ticTacToeContent, client);
+            }
+
+            // If result is null, something is wrong!
+            // Maybe process has exception or command is wrong
+            // But with exception with generic #ttt command
+            // Meaning result processed in client
+            if (result == null && !env.getId().equals("ttt")) {
+                return;
+            }
+
+            // Get the new tic tac toe content from result
+            // If process from server
+            if (result != null) {
+                ticTacToeContent = (TicTacToe) result.getContents();
+            } else {
+                result = env; // Set result to data from client
+            }
+
+            target.sendToClient(result);
+            // Except invite, message must be broadcast to both users
+            if (ticTacToeContent.getGameState() != 1) {
+                client.sendToClient(result);
+            }
+
+            // Save to info of both players
+            target.setInfo("ttt", ticTacToeContent);
+            client.setInfo("ttt", ticTacToeContent);
+        } catch (IOException ex) {
+            chatConsole.display("Cannot send tictactoe command to client");
+            chatConsole.display(ex.getMessage());
+        }
+    }
+
+    public Envelope onTicTacToeInvite(String targetUser, ConnectionToClient client) throws IOException {
+        Envelope env = new Envelope();
+        String senderUser = client.getInfo("userId").toString();
+
+        if (targetUser.equals("guest")) {
+            client.sendToClient("<ADMIN>Cannot invite guest to play!");
+            return null;
+        }
+
+        if (senderUser.equals("guest")) {
+            client.sendToClient("<ADMIN>You must be login to play!");
+            return null;
+        }
+
+        TicTacToe ticTacToe = new TicTacToe();
+        ticTacToe.setGameState(1);
+
+        ticTacToe.setPlayer1(senderUser);
+        env.setId("ttt");
+        env.setContents(ticTacToe);
+
+        return env;
+    }
+
+    public Envelope onTicTacToeAccept(TicTacToe t, ConnectionToClient client) throws IOException {
+        TicTacToe ticTacToe = new TicTacToe(t);
+
+        if (ticTacToe.getGameState() != 1) {
+            return null;
+        }
+
+        Envelope env = new Envelope();
+        String targetUser = ticTacToe.getPlayer1();
+        String senderUser = client.getInfo("userId").toString();
+
+        if (targetUser == null || targetUser.length() == 0 || targetUser.equals(senderUser)) {
+            client.sendToClient("<ADMIN>Can not accept game yourself!");
+            return null;
+        }
+
+        ticTacToe.setPlayer2(senderUser);
+        ticTacToe.setGameState(3);
+        ticTacToe.setActivePlayer(1);
+        ticTacToe.setBoard(new char[3][3]);
+
+        env.setId("ttt");
+        env.setContents(ticTacToe);
+
+        return env;
+    }
+
+    public Envelope onTicTacToeDecline(TicTacToe t, ConnectionToClient client) throws IOException {
+        TicTacToe ticTacToe = new TicTacToe(t);
+
+        if (ticTacToe.getGameState() == 2 || ticTacToe.getGameState() == 4) {
+            return null;
+        }
+
+        Envelope env = new Envelope();
+        ticTacToe.setGameState(2);
+        env.setId("ttt");
+        env.setContents(ticTacToe);
+
+        return env;
+    }
+
+    public Envelope onTicTacToeMove(int move, TicTacToe t, ConnectionToClient client) throws IOException {
+        TicTacToe ticTacToe = new TicTacToe(t);
+
+        if (ticTacToe.getGameState() != 3 || !isActivePlayer(ticTacToe, client)) {
+            return null;
+        }
+
+        Envelope env = new Envelope();
+
+        // Prevent move out of bounds
+        if (move >= 9 || move < 0) {
+            client.sendToClient("<ADMIN>Try another move! (1-9)");
+            return null;
+        }
+
+        // Prevent override value
+        char board[][] = ticTacToe.getBoard();
+        if ((int) board[move / 3][move % 3] != 0) {
+            client.sendToClient("<ADMIN>You can not take that position! Try another.");
+            return null;
+        }
+
+        ticTacToe.updateBoard(move);
+
+        if (ticTacToe.getActivePlayer() == 1) {
+            ticTacToe.setActivePlayer(2);
+            env.setArg(ticTacToe.getPlayer2());
+        } else {
+            ticTacToe.setActivePlayer(1);
+            env.setArg(ticTacToe.getPlayer1());
+        }
+
+        env.setId("ttt");
+        env.setContents(ticTacToe);
+
+        return env;
+    }
+
+    public boolean isActivePlayer(TicTacToe ticTacToe, ConnectionToClient client) {
+        String senderUser = client.getInfo("userId").toString();
+        switch (ticTacToe.getActivePlayer()) {
+            case 1:
+                return ticTacToe.getPlayer1().equals(senderUser);
+            case 2:
+                return ticTacToe.getPlayer2().equals(senderUser);
+            default:
+                return false;
         }
     }
 

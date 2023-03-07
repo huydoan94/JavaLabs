@@ -19,6 +19,21 @@ public class TicTacToe implements Serializable {
     private int gameState;
     private char[][] board;
 
+    public TicTacToe() {
+    }
+
+    public TicTacToe(TicTacToe ttt) {
+        if (ttt == null) {
+            return;
+        }
+
+        setActivePlayer(ttt.getActivePlayer());
+        setBoard(ttt.getBoard());
+        setGameState(ttt.getGameState());
+        setPlayer1(ttt.getPlayer1());
+        setPlayer2(ttt.getPlayer2());
+    }
+
     public String getPlayer1() {
         return player1;
     }
@@ -56,7 +71,16 @@ public class TicTacToe implements Serializable {
     }
 
     public void setBoard(char[][] board) {
-        this.board = board;
+        if (board == null) {
+            return;
+        }
+
+        this.board = new char[board.length][board[0].length];
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                this.board[i][j] = board[i][j];
+            }
+        }
     }
 
     public void checkwin() {
