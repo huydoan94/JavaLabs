@@ -13,7 +13,7 @@ import java.awt.event.*;
 import java.awt.*;
 import java.io.IOException;
 
-public class ClientGUI extends JFrame implements ChatIF {
+public class ClientGUI extends JFrame implements ChatIF, WindowListener {
 
     final public static String DEFAULT_HOST = "localhost";
     final public static int DEFAULT_PORT = 5555;
@@ -60,6 +60,7 @@ public class ClientGUI extends JFrame implements ChatIF {
         super("Simple Chat GUI");
         setSize(300, 400);
         setLayout(new BorderLayout(5, 5));
+        addWindowListener(this);
 
         JScrollPane messageListScroll = new JScrollPane(
                 messageList,
@@ -123,6 +124,18 @@ public class ClientGUI extends JFrame implements ChatIF {
 
         QuitAction quitAction = new QuitAction();
         quitB.addActionListener(quitAction);
+    }
+
+    @Override
+    public void windowClosing(WindowEvent e) {
+        if (chatClient != null && chatClient.isConnected()) {
+            try {
+                setButtonsBaseOnConnectionStatus(false);
+                chatClient.closeConnection();
+            } catch (IOException ex) {
+            }
+        }
+        System.exit(0);
     }
 
     @Override
@@ -314,5 +327,29 @@ public class ClientGUI extends JFrame implements ChatIF {
             ticTacToeUI.setVisible(false);
             chatClient.handleMessageFromClientUI("#join " + room);
         }
+    }
+
+    @Override
+    public void windowOpened(WindowEvent e) {
+    }
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+    }
+
+    @Override
+    public void windowIconified(WindowEvent e) {
+    }
+
+    @Override
+    public void windowDeiconified(WindowEvent e) {
+    }
+
+    @Override
+    public void windowActivated(WindowEvent e) {
+    }
+
+    @Override
+    public void windowDeactivated(WindowEvent e) {
     }
 }
