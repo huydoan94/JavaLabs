@@ -12,12 +12,14 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.io.IOException;
-
+// ClientGUI class extends JFrame and implements ChatIF and WindowListener
 public class ClientGUI extends JFrame implements ChatIF, WindowListener {
-
+    
+    // Define constants for the default host and port number
     final public static String DEFAULT_HOST = "localhost";
     final public static int DEFAULT_PORT = 5555;
-
+    
+    // Define GUI components
     private final JButton closeB = new JButton("Close");
     private final JButton openB = new JButton("Open");
     private final JButton sendB = new JButton("Send");
@@ -37,22 +39,23 @@ public class ClientGUI extends JFrame implements ChatIF, WindowListener {
     private final JLabel hostLB = new JLabel("Host: ", JLabel.RIGHT);
     private final JLabel messageLB = new JLabel("Message: ", JLabel.RIGHT);
     private final JTextArea messageList = new JTextArea();
-
+    
+    //declare Tic Tac Toe game UI and a chat client
     private TictactoeUI ticTacToeUI;
     private ChatClient chatClient;
-
+    //declare server host and port number
     static String host;
     static int port;
-
+    //main method that initializes the ClientGUI object and runs the application
     public static void main(String[] args) {
-        try {
+        try { //get the server host and port number from the command line arguments
             host = args[0];
             port = Integer.parseInt(args[1]);
         } catch (ArrayIndexOutOfBoundsException e) {
             host = DEFAULT_HOST;
             port = DEFAULT_PORT;
         }
-
+        // Create a new instance of the ClientGUI class
         new ClientGUI();
     }
 
