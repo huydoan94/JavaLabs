@@ -239,6 +239,11 @@ public class ChatClient extends AbstractClient {
             }
         }
 
+        if (message.indexOf("#tttInvite") == 0) {
+            String targetUser = message.substring("#tttInvite".length()).trim();
+            sendTicTacToeInvite(targetUser);
+        }
+
         if (message.equals("#tttAccept")) {
             sendTicTacToeAccept();
         }
@@ -246,10 +251,32 @@ public class ChatClient extends AbstractClient {
         if (message.equals("#tttDecline")) {
             sendTicTacToeDecline();
         }
+
+        // Just a little fun with old console client
+        if (message.indexOf("#tttMove") == 0) {
+            try {
+                int move = Integer.parseInt(message.substring("#tttMove".length()).trim());
+                sendTicTacToeMove(move - 1);
+            } catch (NumberFormatException e) {
+                clientUI.display("Please enter a number!");
+                clientUI.display(e.getMessage());
+            }
+
+        }
     }
 
     public void sendTicTacToeInvite(String targetUser) {
         Envelope env = new Envelope();
+
+        if (targetUser.equals("guest")) {
+            clientUI.display("Cannot invite guest to play!");
+            return;
+        }
+
+        if (userName.equals("guest")) {
+            clientUI.display("You must be login to play!");
+            return;
+        }
 
         ticTacToe = new TicTacToe();
         ticTacToe.setGameState(1);
@@ -307,11 +334,17 @@ public class ChatClient extends AbstractClient {
     }
 
     public void sendTicTacToeMove(int move) {
-        if (ticTacToe == null || ticTacToe.getGameState() != 3) {
+        if (ticTacToe == null || ticTacToe.getGameState() != 3 || !isActivePlayer()) {
             return;
         }
 
         Envelope env = new Envelope();
+
+        // Prevent move out of bounds
+        if (move >= 9 || move < 0) {
+            clientUI.display("Try another move! (1-9)");
+            return;
+        }
 
         // Prevent override value
         char board[][] = ticTacToe.getBoard();
@@ -393,7 +426,7 @@ public class ChatClient extends AbstractClient {
         for (char[] row : ticTacToe.getBoard()) {
             for (char col : row) {
                 if ((int) col == 0) {
-                    boardString += ("-" + " ");
+                    boardString += (TictactoeUI.DEFAULT_SYMBOL + " ");
                 } else {
                     boardString += (col + " ");
                 }
