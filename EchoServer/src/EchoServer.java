@@ -269,8 +269,11 @@ public class EchoServer extends AbstractServer {
             ongoingContent = (TicTacToe) client.getInfo("ttt");
 
             // Don't invite again if you are playing!
-            if (ongoingContent != null && ongoingContent.getGameState() == 3
-                    && env.getId().equals("tttInvite")) {
+            // For server processing, check if envelop has id of tttInvite 
+            boolean isInviting = env.getId().equals("tttInvite")
+                    // OR, For client processing, check if ticTacToe data sending state is 1
+                    || ticTacToeContent.getGameState() == 1;
+            if (ongoingContent != null && ongoingContent.getGameState() == 3 && isInviting) {
                 client.sendToClient("<ADMIN>You are playing!");
 
                 // And tell client to keep track of ongoing game
