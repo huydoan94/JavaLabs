@@ -10,6 +10,10 @@ public class EchoServer extends AbstractServer {
      * The default port to listen on.
      */
     final public static int DEFAULT_PORT = 5555;
+    final public static String ROOM_ID = "room";
+    final public static String USER_ID = "userId";
+    final public static String DEFAULT_USER_NAME = "guest";
+    final public static String DEFAULT_ROOM_NAME = "lobby";
 
     private ChatIF chatConsole;
 
@@ -91,15 +95,15 @@ public class EchoServer extends AbstractServer {
         Thread[] clientThreadList = getClientConnections();
         for (int i = 0; i < clientThreadList.length; i++) {
             ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
-            String userId = target.getInfo("userId").toString();
-            String room = target.getInfo("room").toString();
+            String userId = target.getInfo(USER_ID).toString();
+            String room = target.getInfo(ROOM_ID).toString();
             if (room.equals(room1)) {
-                target.setInfo("room", room2);
+                target.setInfo(ROOM_ID, room2);
 
                 if (!checkDuplicateUserInRoom(target)) {
                     chatConsole.display("Moving " + userId + " to room " + room2);
                 } else {
-                    target.setInfo("room", room1);
+                    target.setInfo(ROOM_ID, room1);
                 }
             }
         }
@@ -110,8 +114,8 @@ public class EchoServer extends AbstractServer {
         Thread[] clientThreadList = getClientConnections();
         for (int i = 0; i < clientThreadList.length; i++) {
             ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
-            String userId = target.getInfo("userId").toString();
-            String room = target.getInfo("room").toString();
+            String userId = target.getInfo(USER_ID).toString();
+            String room = target.getInfo(ROOM_ID).toString();
             chatConsole.display(userId + " - " + room);
         }
     }
@@ -120,8 +124,8 @@ public class EchoServer extends AbstractServer {
         Thread[] clientThreadList = getClientConnections();
         for (int i = 0; i < clientThreadList.length; i++) {
             ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
-            String userId = target.getInfo("userId").toString();
-            String room = target.getInfo("room").toString();
+            String userId = target.getInfo(USER_ID).toString();
+            String room = target.getInfo(ROOM_ID).toString();
             if (user.equals(userId)) {
                 chatConsole.display(user + " is on in room " + room);
                 return;
@@ -144,7 +148,7 @@ public class EchoServer extends AbstractServer {
         } else {
             chatConsole.display("Message received: " + msg + " from " + client);
 
-            String userId = client.getInfo("userId").toString();
+            String userId = client.getInfo(USER_ID).toString();
 
             this.sendToAllClientsInRoom(userId + ": " + msg, client);
         }
@@ -153,38 +157,38 @@ public class EchoServer extends AbstractServer {
     public void handleCommandFromClient(Envelope env, ConnectionToClient client) {
         if (env.getId().equals("login")) {
             String userId = env.getContents().toString();
-            String room = client.getInfo("room").toString();
+            String room = client.getInfo(ROOM_ID).toString();
 
             if (room.length() == 0) {
-                room = "lobby";
+                room = DEFAULT_ROOM_NAME;
             }
 
             if (userId.length() == 0) {
-                userId = "guest";
+                userId = DEFAULT_USER_NAME;
             }
 
-            String prevUserId = client.getInfo("userId").toString();
+            String prevUserId = client.getInfo(USER_ID).toString();
 
-            client.setInfo("userId", userId);
-            client.setInfo("room", room);
+            client.setInfo(USER_ID, userId);
+            client.setInfo(ROOM_ID, room);
 
             if (!checkDuplicateUserInRoom(client)) {
                 notifyUserListChanged();
             } else {
-                client.setInfo("userId", prevUserId);
+                client.setInfo(USER_ID, prevUserId);
             }
         }
 
         if (env.getId().equals("join")) {
             String roomName = env.getContents().toString();
-            String prevRoomName = client.getInfo("room").toString();
+            String prevRoomName = client.getInfo(ROOM_ID).toString();
 
-            client.setInfo("room", roomName);
+            client.setInfo(ROOM_ID, roomName);
 
             if (!checkDuplicateUserInRoom(client)) {
                 notifyUserListChanged();
             } else {
-                client.setInfo("room", prevRoomName);
+                client.setInfo(ROOM_ID, prevRoomName);
             }
         }
 
@@ -196,7 +200,7 @@ public class EchoServer extends AbstractServer {
 
         if (env.getId().equals("yell")) {
             String message = env.getContents().toString();
-            String userId = client.getInfo("userId").toString();
+            String userId = client.getInfo(USER_ID).toString();
             sendToAllClients(userId + " yells: " + message);
         }
 
@@ -222,7 +226,7 @@ public class EchoServer extends AbstractServer {
 
         for (Thread ct : clientThreadList) {
             ConnectionToClient c = (ConnectionToClient) ct;
-            String targetName = c.getInfo("userId").toString();
+            String targetName = c.getInfo(USER_ID).toString();
 
             if (c.equals(client)) {
                 continue;
@@ -254,8 +258,8 @@ public class EchoServer extends AbstractServer {
 
             // Do not invite other user which is playing (the receiver)!
             if (ongoingContent != null && ongoingContent.getGameState() == 3) {
-                if (!client.getInfo("userId").toString().equals(ongoingContent.getPlayer1())
-                        && !client.getInfo("userId").toString().equals(ongoingContent.getPlayer2())) {
+                if (!client.getInfo(USER_ID).toString().equals(ongoingContent.getPlayer1())
+                        && !client.getInfo(USER_ID).toString().equals(ongoingContent.getPlayer2())) {
                     client.sendToClient("<ADMIN>Player " + env.getArg() + " is playing!");
                     return;
                 }
@@ -326,14 +330,14 @@ public class EchoServer extends AbstractServer {
 
     public Envelope onTicTacToeInvite(String targetUser, ConnectionToClient client) throws IOException {
         Envelope env = new Envelope();
-        String senderUser = client.getInfo("userId").toString();
+        String senderUser = client.getInfo(USER_ID).toString();
 
-        if (targetUser.equals("guest")) {
+        if (targetUser.equals(DEFAULT_USER_NAME)) {
             client.sendToClient("<ADMIN>Cannot invite guest to play!");
             return null;
         }
 
-        if (senderUser.equals("guest")) {
+        if (senderUser.equals(DEFAULT_USER_NAME)) {
             client.sendToClient("<ADMIN>You must be login to play!");
             return null;
         }
@@ -357,7 +361,7 @@ public class EchoServer extends AbstractServer {
 
         Envelope env = new Envelope();
         String targetUser = ticTacToe.getPlayer1();
-        String senderUser = client.getInfo("userId").toString();
+        String senderUser = client.getInfo(USER_ID).toString();
 
         if (targetUser == null || targetUser.length() == 0 || targetUser.equals(senderUser)) {
             client.sendToClient("<ADMIN>Can not accept game yourself!");
@@ -429,7 +433,7 @@ public class EchoServer extends AbstractServer {
     }
 
     public boolean isActivePlayer(TicTacToe ticTacToe, ConnectionToClient client) {
-        String senderUser = client.getInfo("userId").toString();
+        String senderUser = client.getInfo(USER_ID).toString();
         switch (ticTacToe.getActivePlayer()) {
             case 1:
                 return ticTacToe.getPlayer1().equals(senderUser);
@@ -443,7 +447,7 @@ public class EchoServer extends AbstractServer {
     public void sendRoomListToClient(ConnectionToClient client) {
         Envelope env = new Envelope();
         ArrayList<String> userList = new ArrayList<String>();
-        String room = client.getInfo("room").toString();
+        String room = client.getInfo(ROOM_ID).toString();
 
         env.setId("who");
         env.setArg(room);
@@ -451,10 +455,10 @@ public class EchoServer extends AbstractServer {
         Thread[] clientThreadList = getClientConnections();
         for (int i = 0; i < clientThreadList.length; i++) {
             ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
-            String targetRoom = target.getInfo("room").toString();
+            String targetRoom = target.getInfo(ROOM_ID).toString();
 
             if (targetRoom.equals(room) && !target.equals(client)) {
-                String encodedString = target.getInfo("userId").toString().replaceAll("&", "&amp;");
+                String encodedString = target.getInfo(USER_ID).toString().replaceAll("&", "&amp;");
                 userList.add(encodedString);
             }
         }
@@ -471,11 +475,11 @@ public class EchoServer extends AbstractServer {
 
     public void sendToAllClientsInRoom(Object msg, ConnectionToClient client) {
         Thread[] clientThreadList = getClientConnections();
-        String room = client.getInfo("room").toString();
+        String room = client.getInfo(ROOM_ID).toString();
 
         for (int i = 0; i < clientThreadList.length; i++) {
             ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
-            if (target.getInfo("room").equals(room)) {
+            if (target.getInfo(ROOM_ID).equals(room)) {
                 try {
                     target.sendToClient(msg);
                 } catch (Exception ex) {
@@ -491,7 +495,7 @@ public class EchoServer extends AbstractServer {
 
         for (int i = 0; i < clientThreadList.length; i++) {
             ConnectionToClient target = (ConnectionToClient) clientThreadList[i];
-            if (target.getInfo("userId").equals(pmTarget)) {
+            if (target.getInfo(USER_ID).equals(pmTarget)) {
                 try {
                     target.sendToClient(msg);
                 } catch (Exception ex) {
@@ -511,12 +515,12 @@ public class EchoServer extends AbstractServer {
                 continue;
             }
 
-            if (client.getInfo("userId").toString().equals("guest")) {
+            if (client.getInfo(USER_ID).toString().equals(DEFAULT_USER_NAME)) {
                 continue;
             }
 
-            if (client.getInfo("room").toString().equals(otherClient.getInfo("room").toString())
-                    && client.getInfo("userId").toString().equals(otherClient.getInfo("userId").toString())) {
+            if (client.getInfo(ROOM_ID).toString().equals(otherClient.getInfo(ROOM_ID).toString())
+                    && client.getInfo(USER_ID).toString().equals(otherClient.getInfo(USER_ID).toString())) {
                 try {
                     Envelope env = new Envelope();
                     env.setId("forceLogout");
@@ -582,8 +586,8 @@ public class EchoServer extends AbstractServer {
 //    }
     protected void clientConnected(ConnectionToClient client) {
         chatConsole.display("<Client Connected:" + client + ">");
-        client.setInfo("room", "lobby");
-        client.setInfo("userId", "guest");
+        client.setInfo(ROOM_ID, DEFAULT_ROOM_NAME);
+        client.setInfo(USER_ID, DEFAULT_USER_NAME);
         notifyUserListChanged();
     }
 

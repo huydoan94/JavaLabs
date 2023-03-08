@@ -223,12 +223,12 @@ public class ClientGUI extends JFrame implements ChatIF, WindowListener {
         public void actionPerformed(ActionEvent e) {
             String targetUser = (String) userListComboBox.getSelectedItem();
 
-            if ("guest".equals(targetUser)) {
+            if (EchoServer.DEFAULT_USER_NAME.equals(targetUser)) {
                 JOptionPane.showMessageDialog(new JFrame(), "You can not invite guest to play");
                 return;
             }
 
-            if ("guest".equals(chatClient.userName)) {
+            if (EchoServer.DEFAULT_USER_NAME.equals(chatClient.userName)) {
                 JOptionPane.showMessageDialog(
                         new JFrame(),
                         "You must login with name first!\nTry close connection and login with name again"
@@ -320,7 +320,7 @@ public class ClientGUI extends JFrame implements ChatIF, WindowListener {
         public void actionPerformed(ActionEvent e) {
             String room = roomTxF.getText().trim();
             if (room.length() == 0) {
-                room = "lobby";
+                room = EchoServer.DEFAULT_ROOM_NAME;
             }
 
             // Close tic tac toe game if trying to change room

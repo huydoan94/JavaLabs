@@ -15,7 +15,7 @@ public class ChatClient extends AbstractClient {
      */
     ChatIF clientUI;
     TicTacToe ticTacToe;
-    String userName = "guest";
+    String userName = EchoServer.DEFAULT_USER_NAME;
 
     /**
      * enableClientProcessTicTacToe to enable processing tic tac toe content
@@ -190,7 +190,7 @@ public class ChatClient extends AbstractClient {
                     openConnection();
                     userName = message.substring(6, message.length()).trim();
                     if (userName.length() == 0) {
-                        userName = "guest";
+                        userName = EchoServer.DEFAULT_USER_NAME;
                     }
                     
                     Envelope env = new Envelope("login", "", userName);
@@ -289,12 +289,12 @@ public class ChatClient extends AbstractClient {
             return;
         }
         
-        if (targetUser.equals("guest")) {
+        if (targetUser.equals(EchoServer.DEFAULT_USER_NAME)) {
             clientUI.display("Cannot invite guest to play!");
             return;
         }
         
-        if (userName.equals("guest")) {
+        if (userName.equals(EchoServer.DEFAULT_USER_NAME)) {
             clientUI.display("You must be login to play!");
             return;
         }
